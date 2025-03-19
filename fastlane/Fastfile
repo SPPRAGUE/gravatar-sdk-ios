@@ -82,7 +82,7 @@ platform :ios do
 
   desc 'Builds the demo app from the given scheme for distribution'
   lane :build_demo_for_distribution do |scheme:|
-    pr_or_branch = ENV.fetch('BUILDKITE_PULL_REQUEST', nil)&.then { |num| "PR ##{num}" } || ENV.fetch('BUILDKITE_BRANCH', nil)
+    pr_or_branch = pull_request_number&.then { |num| "PR ##{num}" } || ENV.fetch('BUILDKITE_BRANCH', nil)
     build_number = ENV.fetch('BUILDKITE_BUILD_NUMBER', '0')
 
     build_app(
@@ -104,7 +104,7 @@ platform :ios do
     EnvManager.require_env_vars!('FIREBASE_APP_DISTRIBUTION_ACCOUNT_KEY')
 
     release_notes = <<~NOTES
-      Pull Request: ##{ENV.fetch('BUILDKITE_PULL_REQUEST', 'N/A')}
+      Pull Request: ##{pull_request_number || 'N/A'}
       Branch: `#{ENV.fetch('BUILDKITE_BRANCH', 'N/A')}`
       Commit: #{ENV.fetch('BUILDKITE_COMMIT', 'N/A')[0...7]}
     NOTES
@@ -117,7 +117,7 @@ platform :ios do
       groups: FIREBASE_TESTERS_GROUP
     )
 
-    next if ENV.fetch('BUILDKITE_PULL_REQUEST', 'false') == 'false'
+    next if pull_request_number.nil?
 
     # Post PR Comment
     comment_body = prototype_build_details_comment(
@@ -126,7 +126,7 @@ platform :ios do
     )
     comment_on_pr(
       project: GITHUB_REPO,
-      pr_number: Integer(ENV.fetch('BUILDKITE_PULL_REQUEST', nil)),
+      pr_number: pull_request_number,
       reuse_identifier: 'prototype-build-link-gravtar-demo',
       body: comment_body
     )
@@ -179,4 +179,10 @@ def read_from_xcconfig!(key:, xcconfig:)
   UI.user_error!("Could not find value for #{key} in xcconfig!") unless configs.key?(key)
 
   configs[key]
+end
+
+def pull_request_number
+  # Buildkite sets this env var to the PR number if on a PR, but to 'false' (and not nil) if not on a PR
+  pr_num = ENV.fetch('BUILDKITE_PULL_REQUEST', 'false')
+  pr_num == 'false' ? nil : Integer(pr_num)
 end
