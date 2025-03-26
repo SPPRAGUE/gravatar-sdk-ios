@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// A UIView wrapper that calculates the intrinsicContentSize based on the compressed height of its child UIView..
+/// A UIView wrapper that calculates the intrinsicContentSize based on the compressed height of its child UIView.
 class IntrinsicHeightView<ContentView: UIView>: UIView {
     var contentView: ContentView
 
