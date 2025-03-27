@@ -94,7 +94,7 @@ steps:
   ###################
   # Prototype Builds of Demo Projects
   ###################
-  - group: ":appcenter: Prototype Build"
+  - group: ":firebase: Prototype Build"
     steps:
       - label: "🛠️ Build Demo"
         key: build_demo
@@ -103,7 +103,7 @@ steps:
         command: |
           install_gems
           install_swiftpm_dependencies --project "Demo/Gravatar-Demo.xcodeproj"
-          BUILD_NUMBER=$BUILDKITE_BUILD_NUMBER make build-demo-for-distribution
+          make build-demo-for-distribution
         artifact_paths:
           - ".build/artifacts/*.ipa"
           - ".build/artifacts/*.dSYM.zip"
@@ -111,10 +111,10 @@ steps:
           - github_commit_status:
               context: "Build Prototype"
 
-      - label: "⬆️ Upload Demo to App Center"
+      - label: "⬆️ Upload Demo to Firebase App Distribution"
         depends_on: build_demo
         plugins: [$CI_TOOLKIT]
-        command: .buildkite/commands/upload-to-appcenter.sh
+        command: .buildkite/commands/upload-demo-to-firebase.sh
         if: build.pull_request.id != null
         notify:
           - github_commit_status:
