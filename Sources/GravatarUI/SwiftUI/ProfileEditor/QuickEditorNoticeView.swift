@@ -70,3 +70,17 @@ struct QuickEditorNoticeView: View {
         }
     }
 }
+
+#Preview {
+    QuickEditorNoticeView(
+        email: .init("some@email.com"),
+        token: .constant("atoken"),
+        oauthError: .constant(nil),
+        model: .init(
+            email: .init("some@email.com"),
+            authToken: "atoken"
+        ),
+        safariURL: .constant(nil),
+        proceedAction: {}
+    )
+}
