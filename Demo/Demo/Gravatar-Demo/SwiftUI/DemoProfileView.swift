@@ -10,19 +10,6 @@ struct DemoProfileView: View {
     @State private var safariURL: IdentifiableURL?
     @ObservedObject private var profileDelegate: ProfileDelegate = .init()
 
-    var paletteType: PaletteType {
-        switch selectedScheme {
-        case .unspecified:
-                .system
-        case .light:
-                .light
-        case .dark:
-                .dark
-        @unknown default:
-                .system
-        }
-    }
-
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             VStack(alignment: .leading, spacing: 5) {
@@ -66,11 +53,6 @@ struct DemoProfileView: View {
             newConfig = newConfig.customize(delegate: profileDelegate)
             self.profileConfiguration = newConfig
         }
-      /*  .onChange(of: selectedScheme) { newValue in
-            var newConfig = self.profileConfiguration
-            newConfig.palette = self.paletteType
-            self.profileConfiguration = newConfig
-        }*/
         .onChange(of: email) { newValue in
             requestProfile()
         }
@@ -93,7 +75,7 @@ struct DemoProfileView: View {
         .environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
     }
 
-    func requestProfile() {
+    private func requestProfile() {
         Task {
             let service = ProfileService()
             startLoading()
@@ -108,16 +90,29 @@ struct DemoProfileView: View {
         }
     }
     
-    func startLoading() {
+    private func startLoading() {
         var newConfig = self.profileConfiguration
         newConfig.isLoading = true
         self.profileConfiguration = newConfig
     }
     
-    func stopLoading() {
+    private func stopLoading() {
         var newConfig = self.profileConfiguration
         newConfig.isLoading = false
         self.profileConfiguration = newConfig
+    }
+    
+    private var paletteType: PaletteType {
+        switch selectedScheme {
+        case .unspecified:
+                .system
+        case .light:
+                .light
+        case .dark:
+                .dark
+        @unknown default:
+                .system
+        }
     }
 }
 
