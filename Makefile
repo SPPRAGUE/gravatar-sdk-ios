@@ -48,16 +48,8 @@ test: bundle-install
 build-demo: bundle-install
 	bundle exec fastlane build_demo scheme:$(SCHEME_DEMO)
 
-build-demo-for-distribution: fetch-code-signing check-build-number setup-secrets
-	bundle exec fastlane build_demo_for_distribution \
-		scheme:$(SCHEME_DEMO) \
-		build_number:$(BUILD_NUMBER)
-
-check-build-number:
-ifndef BUILD_NUMBER
-	@echo "BUILD_NUMBER not set in the environment. Will default to 0."
-	override BUILD_NUMBER = 0
-endif
+build-demo-for-distribution: fetch-code-signing setup-secrets
+	bundle exec fastlane build_demo_for_distribution scheme:$(SCHEME_DEMO)
 
 bundle-install:
 	bundle install

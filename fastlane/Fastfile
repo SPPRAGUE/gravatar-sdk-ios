@@ -18,8 +18,8 @@ COMMON_XCARGS = ['-skipPackagePluginValidation'].freeze # Allow SwiftPM plugins 
 GITHUB_REPO = 'Automattic/Gravatar-SDK-iOS'
 GITHUB_URL = "https://github.com/#{GITHUB_REPO}".freeze
 
-APPCENTER_OWNER_NAME = 'automattic'
-APPCENTER_OWNER_TYPE = 'organization'
+FIREBASE_APP_ID = '1:124902176124:ios:0fc3cbe4d84305531620f9'
+FIREBASE_TESTERS_GROUP = 'gravatarsdk-ios---prototype-builds'
 
 require_relative 'lib/env_manager'
 require_relative 'lib/code_signing_helpers'
@@ -81,8 +81,9 @@ platform :ios do
   end
 
   desc 'Builds the demo app from the given scheme for distribution'
-  lane :build_demo_for_distribution do |scheme:, build_number:|
-    UI.user_error! 'Please pass a build number by calling the lane with build_number:VALUE' if build_number.nil? || build_number.empty?
+  lane :build_demo_for_distribution do |scheme:|
+    pr_or_branch = pull_request_number&.then { |num| "PR ##{num}" } || ENV.fetch('BUILDKITE_BRANCH', nil)
+    build_number = ENV.fetch('BUILDKITE_BUILD_NUMBER', '0')
 
     build_app(
       project: XCODEPROJ_PATH,
@@ -91,21 +92,44 @@ platform :ios do
       export_method: 'enterprise',
       output_directory: ARTIFACTS_FOLDER,
       xcargs: [
+        "MARKETING_VERSION=#{pr_or_branch}",
         "CURRENT_PROJECT_VERSION=#{build_number}",
         *COMMON_XCARGS
       ]
     )
   end
 
-  desc 'Upload the demo app with the given name to App Center'
-  lane :upload_demo_to_appcenter do |build_number:|
-    slug = 'Gravatar-SDK-Demo-UIKit'
-    upload_to_appcenter(appcenter_slug: slug, artifact_basename: 'Gravatar Demo')
+  desc 'Upload the demo app to Firebase App Distribution'
+  lane :upload_demo_to_firebase do
+    EnvManager.require_env_vars!('FIREBASE_APP_DISTRIBUTION_ACCOUNT_KEY')
 
-    next unless is_ci
+    release_notes = <<~NOTES
+      Pull Request: ##{pull_request_number || 'N/A'}
+      Branch: `#{ENV.fetch('BUILDKITE_BRANCH', 'N/A')}`
+      Commit: #{ENV.fetch('BUILDKITE_COMMIT', 'N/A')[0...7]}
+    NOTES
 
-    annotate_pr_with_appcenter_link
-    annotate_buildkite_with_appcenter_link(appcenter_slug: slug, build_number: build_number)
+    firebase_app_distribution(
+      app: FIREBASE_APP_ID,
+      ipa_path: File.join(ARTIFACTS_FOLDER, 'Gravatar Demo.ipa'),
+      service_credentials_json_data: EnvManager.get_required_env!('FIREBASE_APP_DISTRIBUTION_ACCOUNT_KEY'),
+      release_notes: release_notes,
+      groups: FIREBASE_TESTERS_GROUP
+    )
+
+    next if pull_request_number.nil?
+
+    # Post PR Comment
+    comment_body = prototype_build_details_comment(
+      app_display_name: 'Gravatar Prototype Build',
+      fold: true
+    )
+    comment_on_pr(
+      project: GITHUB_REPO,
+      pr_number: pull_request_number,
+      reuse_identifier: 'prototype-build-link-gravtar-demo',
+      body: comment_body
+    )
   end
 
   desc 'Fetches the code signing certificate and provisioning profile for the prototype builds'
@@ -141,63 +165,6 @@ def configure_code_signing(bundle_ids:, readonly:)
   )
 end
 
-def upload_to_appcenter(appcenter_slug:, artifact_basename:)
-  EnvManager.require_env_vars!('APPCENTER_API_TOKEN')
-
-  commit = ENV.fetch('BUILDKITE_COMMIT', 'Unknown')
-  pr = ENV.fetch('BUILDKITE_PULL_REQUEST', nil)
-  release_notes = <<~NOTES
-    - Branch: `#{ENV.fetch('BUILDKITE_BRANCH', 'Unknown')}`\n
-    - Commit: [#{commit[0...7]}](#{GITHUB_URL}/commit/#{commit})\n
-    - Pull Request: [##{pr}](#{GITHUB_URL}/pull/#{pr})\n
-  NOTES
-
-  appcenter_upload(
-    api_token: EnvManager.get_required_env!('APPCENTER_API_TOKEN'),
-    owner_name: APPCENTER_OWNER_NAME,
-    owner_type: APPCENTER_OWNER_TYPE,
-    app_name: appcenter_slug,
-    file: File.join(ARTIFACTS_FOLDER, "#{artifact_basename}.ipa"),
-    dsym: File.join(ARTIFACTS_FOLDER, "#{artifact_basename}.app.dSYM.zip"),
-    release_notes: release_notes,
-    destinations: 'Collaborators',
-    notify_testers: false
-  )
-end
-
-def annotate_pr_with_appcenter_link
-  comment_body = prototype_build_details_comment(
-    app_display_name: 'Gravatar Prototype Build',
-    app_center_org_name: APPCENTER_OWNER_NAME,
-    fold: true
-  )
-
-  comment_on_pr(
-    project: GITHUB_REPO,
-    pr_number: Integer(ENV.fetch('BUILDKITE_PULL_REQUEST', nil)),
-    reuse_identifier: 'prototype-build-link-gravtar-demo',
-    body: comment_body
-  )
-end
-
-def annotate_buildkite_with_appcenter_link(appcenter_slug:, build_number:)
-  # This is the id of the build on App Center
-  appcenter_id = lane_context.dig(SharedValues::APPCENTER_BUILD_INFORMATION, 'id')
-  metadata = {
-    build_type: 'Prototype',
-    'appcenter:id': appcenter_id,
-    build_number: build_number
-  }
-  appcenter_install_url = "https://install.appcenter.ms/orgs/#{APPCENTER_OWNER_NAME}/apps/#{appcenter_slug}/releases/#{appcenter_id}"
-  list = metadata.map { |k, v| " - **#{k}**: #{v}" }.join("\n")
-
-  buildkite_annotate(
-    context: "appcenter-info-#{appcenter_slug}",
-    style: 'info',
-    message: "Gravatar Demo [App Center Build](#{appcenter_install_url}) Info:\n\n#{list}"
-  )
-end
-
 def team_id_prototype_build!
   read_from_xcconfig!(key: 'DEVELOPMENT_TEAM', xcconfig: File.join(DEMO_APPS_SOURCES_FOLDER, 'Enterprise.xcconfig'))
 end
@@ -212,4 +179,10 @@ def read_from_xcconfig!(key:, xcconfig:)
   UI.user_error!("Could not find value for #{key} in xcconfig!") unless configs.key?(key)
 
   configs[key]
+end
+
+def pull_request_number
+  # Buildkite sets this env var to the PR number if on a PR, but to 'false' (and not nil) if not on a PR
+  pr_num = ENV.fetch('BUILDKITE_PULL_REQUEST', 'false')
+  pr_num == 'false' ? nil : Integer(pr_num)
 end
