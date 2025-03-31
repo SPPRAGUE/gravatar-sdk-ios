@@ -8,4 +8,4 @@ echo "--- :rubygems: Setting up Gems"
 install_gems
 
 echo "--- :hammer_and_wrench: Uploading"
-bundle exec fastlane ios upload_demo_to_appcenter build_number:"$BUILDKITE_BUILD_NUMBER"
+bundle exec fastlane ios upload_demo_to_firebase
