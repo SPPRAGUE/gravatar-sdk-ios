@@ -11,13 +11,8 @@ struct DemoProfileEditorView: View {
     @State private var selectedScheme: UIUserInterfaceStyle = .unspecified
     @Environment(\.oauthSession) var oauthSession
 
-    @State var profileModel: ProfileModel? = nil
-    @State var avatarID: AvatarIdentifier? = nil {
-        didSet {
-            avatarRefreshTrigger.trigger()
-        }
-    }
-    @State var avatarRefreshTrigger: RefreshTrigger = .init()
+    @State private var profileConfiguration: ProfileViewConfiguration = .summary()
+    @State private var oneTimeAvatarForceRefresh: Bool = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -27,9 +22,9 @@ struct DemoProfileEditorView: View {
                     .textInputAutocapitalization(.never)
                     .keyboardType(.emailAddress)
                     .disableAutocorrection(true)
-                Divider()
+                    .textFieldStyle(.roundedBorder)
 
-                ProfileSummary(profileModel: $profileModel, avatarID: $avatarID, trigger: $avatarRefreshTrigger).frame(height: 160)
+                ProfileViewRepresentable(configuration: $profileConfiguration, oneTimeAvatarForceRefresh: $oneTimeAvatarForceRefresh)
                 if #available(iOS 16.0, *) {
                     QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
                 }
@@ -49,7 +44,7 @@ struct DemoProfileEditorView: View {
                                 email: email,
                                 scope: .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout)),
                                 avatarUpdatedHandler: {
-                                    avatarRefreshTrigger.trigger()
+                                    self.oneTimeAvatarForceRefresh = true
                                 },
                                 onDismiss: {
                                     updateHasSession(with: email)
@@ -63,7 +58,7 @@ struct DemoProfileEditorView: View {
                                 email: email,
                                 scope: .avatarPicker,
                                 avatarUpdatedHandler: {
-                                    avatarRefreshTrigger.trigger()
+                                    self.oneTimeAvatarForceRefresh = true
                                 },
                                 onDismiss: {
                                     updateHasSession(with: email)
@@ -81,6 +76,7 @@ struct DemoProfileEditorView: View {
 
             Spacer()
         }
+        .background(Color(UIColor.systemGroupedBackground))
         .onAppear() {
             updateHasSession(with: email)
             requestProfile()
@@ -96,8 +92,11 @@ struct DemoProfileEditorView: View {
         Task {
             let service = ProfileService()
             let profile = try await service.fetch(with: .email(email))
-            self.profileModel = profile
-            self.avatarID = profile.avatarIdentifier
+            var newConfig = self.profileConfiguration
+            newConfig.avatarIdentifier = profile.avatarIdentifier
+            newConfig.model = profile
+            newConfig.summaryModel = profile
+            self.profileConfiguration = newConfig
         }
     }
 
@@ -108,31 +107,4 @@ struct DemoProfileEditorView: View {
 
 #Preview {
     DemoProfileEditorView()
-}
-
-struct ProfileSummary: UIViewRepresentable {
-    @Binding var profileModel: ProfileModel?
-    @Binding var avatarID: AvatarIdentifier?
-    @Binding var trigger: RefreshTrigger
-
-    func makeUIView(context: Context) -> GravatarUI.ProfileSummaryView {
-        let pageViewController = ProfileSummaryView()
-        return pageViewController
-    }
-    
-    func updateUIView(_ uiView: GravatarUI.ProfileSummaryView, context: Context) {
-        trigger.onTrigger = {
-            uiView.loadAvatar(with: avatarID, rating: .x, options: [.forceRefresh])
-        }
-
-        uiView.update(with: profileModel)
-    }
-}
-
-class RefreshTrigger: ObservableObject {
-    var onTrigger: (() -> Void)?
-
-    func trigger() {
-        onTrigger?()
-    }
 }
