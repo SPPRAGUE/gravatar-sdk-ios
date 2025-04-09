@@ -14,6 +14,8 @@ tags:
     description: Operations about user profiles
   - name: avatars
     description: Operations about user avatars
+  - name: qr-code
+    description: Operations about QR codes
 components:
   headers:
     X-RateLimit-Limit:
@@ -601,6 +603,207 @@ paths:
           $ref: '#/components/responses/rate_limit_exceeded'
         '500':
           description: Internal server error
+  /qr-code/{sha256_hash}:
+    get:
+      summary: Get QR code for an email address' profile
+      description: Returns a QR code for an email address by the given SHA256 hash.
+      tags:
+        - qr-code
+      operationId: getQrCodeBySha256Hash
+      parameters:
+        - name: sha256_hash
+          in: path
+          required: true
+          description: The SHA256 hash of the email address or profile URL slug.
+          schema:
+            type: string
+        - name: size
+          in: query
+          required: false
+          description: The size of the QR code.
+          schema:
+            type: integer
+        - name: version
+          in: query
+          required: false
+          description: The version of the QR code.
+          schema:
+            type: string
+        - name: utm_medium
+          in: query
+          required: false
+          description: >-
+            The medium of the UTM parameters. Appended to the URL in the QR
+            code.
+          schema:
+            type: string
+        - name: utm_campaign
+          in: query
+          required: false
+          description: >-
+            The campaign of the UTM parameters. Appended to the URL in the QR
+            code.
+          schema:
+            type: string
+        - name: type
+          in: query
+          required: false
+          description: >-
+            The type of center icon to display ('user' for avatar, 'gravatar'
+            for logo, 'none' for no icon).
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          headers:
+            X-Gravatar-Profile-Status:
+              description: >-
+                The status of the profile. Possible values: 'enabled',
+                'disabled', 'not-found'
+              schema:
+                type: string
+                examples:
+                  - enabled
+                  - disabled
+                  - not-found
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        '429':
+          description: Rate limit exceeded
+          $ref: '#/components/responses/rate_limit_exceeded'
+        '500':
+          description: Internal server error
+  /me/profile:
+    get:
+      summary: Get profile information for the authenticated user
+      description: >-
+        Returns the information available for the authenticated user. It's
+        equivalent to the full profile information available in the
+        `/profiles/{profileIdentifier}` endpoint.
+      tags:
+        - profiles
+      operationId: getProfile
+      security:
+        - oauth: []
+      parameters: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Not Authorized
+          $ref: '#/components/responses/not_authorized'
+        '403':
+          description: Insufficient Scope
+          $ref: '#/components/responses/insufficient_scope'
+        '404':
+          description: Profile is disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                disabled:
+                  value:
+                    error: Profile is disabled
+                    code: disabled
+    patch:
+      summary: Update profile information for the authenticated user
+      description: >-
+        Updates the profile information for the authenticated user. Only a
+        subset of `Profile` fields are available for update. Partial updates are
+        supported, so only the provided fields will be updated. To unset a
+        field, set it explicitly to an empty string.
+      tags:
+        - profiles
+      operationId: updateProfile
+      security:
+        - oauth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: >-
+                The subset of data available for update. Field names match the
+                ones in `Profile`. Only the provided fields will be updated.
+              properties:
+                display_name:
+                  type: string
+                  description: >-
+                    The user's display name. This is the name that is displayed
+                    on their profile.
+                  examples:
+                    - Alex Morgan
+                description:
+                  type: string
+                  description: The about section on a user's profile.
+                  examples:
+                    - I like playing hide and seek.
+                pronunciation:
+                  type: string
+                  description: The phonetic pronunciation of the user's name.
+                  examples:
+                    - Al-ex Mor-gan
+                pronouns:
+                  type: string
+                  description: The pronouns the user uses.
+                  examples:
+                    - She/They
+                location:
+                  type: string
+                  description: The user's location.
+                  examples:
+                    - New York, USA
+                job_title:
+                  type: string
+                  description: The user's job title.
+                  examples:
+                    - Landscape Architect
+                company:
+                  type: string
+                  description: The user's current company's name.
+                  examples:
+                    - ACME Corp
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Not Authorized
+          $ref: '#/components/responses/not_authorized'
+        '403':
+          description: Insufficient Scope
+          $ref: '#/components/responses/insufficient_scope'
+        '404':
+          description: Profile is disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                disabled:
+                  value:
+                    error: Profile is disabled
+                    code: disabled
   /me/associated-email:
     get:
       summary: Check if the email is associated with the authenticated user
@@ -738,7 +941,7 @@ paths:
         '403':
           description: Insufficient Scope
           $ref: '#/components/responses/insufficient_scope'
-  /me/avatars/{imageId}:
+  /me/avatars/{imageHash}:
     delete:
       summary: Delete avatar
       description: Deletes a specific avatar for the authenticated user.
@@ -748,14 +951,14 @@ paths:
       security:
         - oauth: []
       parameters:
-        - name: imageId
+        - name: imageHash
           in: path
           required: true
-          description: The ID of the avatar to delete.
+          description: The hash of the avatar to delete.
           schema:
             type: string
       responses:
-        '204':
+        '200':
           description: Avatar deleted successfully
         '401':
           description: Not Authorized
@@ -763,6 +966,8 @@ paths:
         '403':
           description: Insufficient Scope
           $ref: '#/components/responses/insufficient_scope'
+        '404':
+          description: Avatar not found
     patch:
       summary: Update avatar data
       description: Updates the avatar data for a given avatar for the authenticated user.
@@ -793,10 +998,10 @@ paths:
                       providing globally unique avatars.
               required: []
       parameters:
-        - name: imageId
+        - name: imageHash
           in: path
           required: true
-          description: The ID of the avatar to update.
+          description: The hash of the avatar to update.
           schema:
             type: string
       responses:
@@ -812,6 +1017,8 @@ paths:
         '403':
           description: Insufficient Scope
           $ref: '#/components/responses/insufficient_scope'
+        '404':
+          description: Avatar not found
   /me/avatars/{imageId}/email:
     post:
       summary: Set avatar for the hashed email
@@ -845,7 +1052,7 @@ paths:
       security:
         - oauth: []
       responses:
-        '204':
+        '200':
           description: Avatar successfully set
         '401':
           description: Not Authorized
