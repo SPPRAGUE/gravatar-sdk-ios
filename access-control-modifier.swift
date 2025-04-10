@@ -11,7 +11,8 @@ let internalTypes: [String] = [
 let packageTypes: [String] = [
     "Avatar",
     "AvatarRating",
-    "UpdateAvatarRequest"
+    "UpdateAvatarRequest",
+    "UpdateProfileRequest"
 ]
 
 enum AccessControlError: Error {
