@@ -4,7 +4,7 @@ import UIKit
 public typealias CustomImageEditorControllerFactory = (UIImage, @escaping @Sendable (UIImage) -> Void) -> CustomImageEditorController
 
 final class QuickEditorViewController: UIViewController, ModalPresentationWithIntrinsicSize {
-    private typealias CustomFactory = ImageEditorBlock<ImageEditorControllerRepresentable>?
+    private typealias CustomFactory = ImageEditorBlock<CustomImageEditorControllerRepresentable>?
 
     let email: Email
     let scope: QuickEditorScope
@@ -35,14 +35,14 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
     private lazy var rootView: QuickEditor = {
         let factory: CustomFactory = if let customFactory = configuration.customImageEditorFactory {
             { image, callback in
-                ImageEditorControllerRepresentable(
+                CustomImageEditorControllerRepresentable(
                     controllerFactory: customFactory,
                     inputImage: image,
                     editingDidFinish: callback
                 )
             }
         } else {
-            nil as ImageEditorBlock<ImageEditorControllerRepresentable>?
+            nil as ImageEditorBlock<CustomImageEditorControllerRepresentable>?
         }
 
         return QuickEditor(
@@ -225,13 +225,17 @@ public protocol CustomImageEditorController: UIViewController {
     )
 }
 
-private struct ImageEditorControllerRepresentable: UIViewControllerRepresentable, ImageEditorView {
+private struct CustomImageEditorControllerRepresentable: UIViewControllerRepresentable, ImageEditorView {
     var inputImage: UIImage
     var editingDidFinish: @Sendable (UIImage) -> Void
 
     let controllerFactory: CustomImageEditorControllerFactory
 
-    init(controllerFactory: @escaping CustomImageEditorControllerFactory, inputImage: UIImage, editingDidFinish: @escaping @Sendable (UIImage) -> Void) {
+    init(
+        controllerFactory: @escaping CustomImageEditorControllerFactory,
+        inputImage: UIImage,
+        editingDidFinish: @escaping @Sendable (UIImage) -> Void
+    ) {
         self.controllerFactory = controllerFactory
         self.inputImage = inputImage
         self.editingDidFinish = editingDidFinish
