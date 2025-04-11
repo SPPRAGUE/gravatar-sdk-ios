@@ -10,6 +10,17 @@ struct QEColorSchemePickerRow: View {
         case dark
         case system
         
+        init(_ userInterfaceStyle: UIUserInterfaceStyle) {
+            switch userInterfaceStyle {
+            case .light:
+                self = .light
+            case .dark:
+                self = .dark
+            default:
+                self = .system
+            }
+        }
+
         var colorScheme: UIUserInterfaceStyle {
             switch self {
             case .light:
@@ -35,6 +46,9 @@ struct QEColorSchemePickerRow: View {
                 }
             }
             .pickerStyle(MenuPickerStyle())
+            .onAppear() {
+                self.options = Options(self.selectedScheme)
+            }
             .onChange(of: options) { newValue in
                 self.selectedScheme = newValue.colorScheme
             }

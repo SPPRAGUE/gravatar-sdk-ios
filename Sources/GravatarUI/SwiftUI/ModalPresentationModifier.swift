@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ModalPresentationModifier<ModalView: View>: ViewModifier {
     @Binding var isPresented: Bool
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     let onDismiss: (() -> Void)?
     let modalView: ModalView
 
@@ -15,6 +16,7 @@ struct ModalPresentationModifier<ModalView: View>: ViewModifier {
         content
             .sheet(isPresented: $isPresented, onDismiss: onDismiss) {
                 modalView
+                    .preferredColorScheme(colorScheme)
             }
     }
 }

@@ -22,6 +22,7 @@ struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, Mod
     @State private(set) var verticalSizeClass: UserInterfaceSizeClass?
     @State private var presentationDetents: Set<PresentationDetent>
     @State private var prioritizeScrollOverResize: Bool = false
+    @Environment(\.colorScheme) var colorScheme: ColorScheme
     let onDismiss: (() -> Void)?
     let modalView: ModalView
     var contentLayoutWithPresentation: AvatarPickerContentLayout
@@ -60,6 +61,7 @@ struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, Mod
             }
             .sheet(isPresented: $isPresentedInner, onDismiss: onDismiss) {
                 modalView
+                    .preferredColorScheme(colorScheme)
                     .frame(minHeight: Constants.bottomSheetMinHeight)
                     .onPreferenceChange(InnerHeightPreferenceKey.self) { newHeight in
                         Task { @MainActor in
