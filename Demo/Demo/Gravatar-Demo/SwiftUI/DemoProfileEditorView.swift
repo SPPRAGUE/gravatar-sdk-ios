@@ -4,6 +4,7 @@ import GravatarUI
 struct DemoProfileEditorView: View {
 
     @AppStorage("pickerEmail") private var email: String = ""
+    @AppStorage("pickerToken") private var token: String = ""
     @AppStorage("pickerContentLayoutOptions") private var contentLayoutOptions: QELayoutOptions = .verticalLarge
     // You can make this `true` by default to easily test the picker
     @State private var isPresentingPicker: Bool = false
@@ -13,6 +14,8 @@ struct DemoProfileEditorView: View {
 
     @State private var profileConfiguration: ProfileViewConfiguration = .summary()
     @State private var oneTimeAvatarForceRefresh: Bool = false
+    @State private var isSecure: Bool = true
+    @State var enableCustomImageCropper: Bool = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -23,7 +26,21 @@ struct DemoProfileEditorView: View {
                     .keyboardType(.emailAddress)
                     .disableAutocorrection(true)
                     .textFieldStyle(.roundedBorder)
-
+                HStack {
+                    tokenField()
+                        .font(.callout)
+                        .textInputAutocapitalization(.never)
+                        .disableAutocorrection(true)
+                        .disableAutocorrection(true)
+                        .textFieldStyle(.roundedBorder)
+                    Button(action: {
+                        isSecure.toggle()
+                    }) {
+                        Image(systemName: isSecure ? "eye.slash" : "eye")
+                            .foregroundColor(.gray)
+                    }
+                }
+                Spacer().frame(height: 8)
                 ProfileViewRepresentable(configuration: $profileConfiguration, oneTimeAvatarForceRefresh: $oneTimeAvatarForceRefresh)
                 if #available(iOS 16.0, *) {
                     QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
@@ -31,6 +48,9 @@ struct DemoProfileEditorView: View {
                 Divider()
 
                 QEColorSchemePickerRow(selectedScheme: $selectedScheme)
+                
+                Divider()
+                Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
             }
             .padding(.horizontal)
                 Button("Open Profile Editor with OAuth flow") {
@@ -42,7 +62,9 @@ struct DemoProfileEditorView: View {
                             .gravatarQuickEditorSheet(
                                 isPresented: $isPresentingPicker,
                                 email: email,
+                                authToken: !token.isEmpty ? token : nil,
                                 scope: .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout)),
+                                customImageEditor: customImageEditor(),
                                 avatarUpdatedHandler: {
                                     self.oneTimeAvatarForceRefresh = true
                                 },
@@ -56,7 +78,9 @@ struct DemoProfileEditorView: View {
                             .gravatarQuickEditorSheet(
                                 isPresented: $isPresentingPicker,
                                 email: email,
+                                authToken: !token.isEmpty ? token : nil,
                                 scope: .avatarPicker,
+                                customImageEditor: customImageEditor(),
                                 avatarUpdatedHandler: {
                                     self.oneTimeAvatarForceRefresh = true
                                 },
@@ -103,6 +127,25 @@ struct DemoProfileEditorView: View {
 
     func updateHasSession(with email: String) {
         hasSession = oauthSession.hasSession(with: .init(email))
+    }
+    
+    @ViewBuilder
+    func tokenField() -> some View {
+        if isSecure {
+            SecureField("Token", text: $token)
+        } else {
+            TextField("Token", text: $token)
+        }
+    }
+    
+    private func customImageEditor() -> ImageEditorBlock<TestImageCropper>? {
+        if enableCustomImageCropper {
+            let block = { image, editingDidFinish in
+                TestImageCropper(inputImage: image, editingDidFinish: editingDidFinish)
+            }
+            return block
+        }
+        return nil as ImageEditorBlock<TestImageCropper>?
     }
 }
 
