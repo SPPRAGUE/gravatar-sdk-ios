@@ -49,12 +49,6 @@ struct Toast: View {
             view.shadow(radius: 3, y: 3)
         })
         .zIndex(1)
-        .accessibilityFocused($focus)
-        .onAppear {
-            if toast.type == .error {
-                focus = true
-            }
-        }
     }
 
     var backgroundColor: Color {
