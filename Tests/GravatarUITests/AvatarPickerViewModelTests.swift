@@ -381,28 +381,11 @@ final class AvatarPickerViewModelTests {
         #expect(updatedAvatar.altText == newAltText)
     }
 
-    @Test
-    func testNewAccountProfileRefresh() async throws {
-        let session = URLSessionAvatarPickerMockNewAccount()
-        model = Self.createModel(session: session)
-        await model.refresh()
-        let task = try #require(model.compensatingFetchProfileTask, "No profile task found")
-        // `await confirmation { ... }` doesn't await the unstructured `Task` so we need to await it.
-        // For context: https://forums.swift.org/t/testing-closure-based-asynchronous-apis/73705/9
-        await task.value
-        let isProfileFetched = switch model.profileResult {
-        case .success:
-            true
-        default:
-            false
-        }
-        #expect(isProfileFetched)
-    }
-
     @Test(
         "Handle avatar alt text change: Failure",
         arguments: [HTTPStatus.unauthorized, .forbidden]
     )
+
     func testUpdateAltTextError(httpStatus: HTTPStatus) async throws {
         model = Self.createModel(session: URLSessionAvatarPickerMock(returnErrorCode: httpStatus.rawValue))
         await model.refresh()
@@ -495,7 +478,7 @@ final class URLSessionAvatarPickerMock: URLSessionProtocol {
 
 extension URLRequest {
     private enum RequestType: String {
-        case profiles
+        case profiles = "/me/profile"
         case avatars
     }
 
@@ -557,30 +540,4 @@ extension Data? {
         guard let self else { return false }
         return (try? decoder.decode(T.self, from: self)) != nil
     }
-}
-
-// Simulates profile creation at the BE side on the very first avatar request.
-actor URLSessionAvatarPickerMockNewAccount: URLSessionProtocol {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
-        if request.isProfilesRequest {
-            if profileRequestCount == 0 {
-                profileRequestCount += 1
-                // profile is missing on the first call
-                return ("{\"error\":\"error\"".data(using: .utf8)!, HTTPURLResponse.errorResponse(code: 404))
-            } else {
-                return (Bundle.fullProfileJsonData, HTTPURLResponse.successResponse()) // Profile data
-            }
-        } else if request.isAvatarsRequest == true {
-            return (Bundle.getAvatarsJsonData, HTTPURLResponse.successResponse()) // Avatars data
-        }
-        throw TestURLSessionError(message: "Unexpected request")
-    }
-
-    func upload(for request: URLRequest, from bodyData: Data) async throws -> (Data, URLResponse) {
-        (Bundle.postAvatarUploadJsonData, HTTPURLResponse.successResponse())
-    }
-
-    private var profileRequestCount: Int = 0
-
-    init() {}
 }

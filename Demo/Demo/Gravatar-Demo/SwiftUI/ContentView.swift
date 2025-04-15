@@ -6,7 +6,6 @@ struct ContentView: View {
 
     enum Page: String, CaseIterable, Identifiable {
         case avatarView = "Avatar view"
-        case avatarPickerView = "Avatar picker view"
         case oauth = "Profile editor with oauth"
         case profileView = "Profile view"
 
@@ -59,8 +58,6 @@ struct ContentView: View {
         switch page {
         case .avatarView:
             DemoAvatarView()
-        case .avatarPickerView:
-            DemoAvatarPickerView()
         case .oauth:
             DemoProfileEditorView()
         case .profileView:

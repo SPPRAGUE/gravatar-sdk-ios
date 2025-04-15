@@ -112,7 +112,17 @@ final class DemoQuickEditorViewController: UIViewController {
         return control
     }()
 
+    lazy var imageEditorToggle: UISegmentedControl = {
+        let control = UISegmentedControl(items: [
+            UIAction.init(title: "Default Image Editor") { _ in self.useCustomImageEditor = false },
+            UIAction.init(title: "Custom Image Editor") { _ in self.useCustomImageEditor = true },
+        ])
+        control.selectedSegmentIndex = 0
+        return control
+    }()
+
     var customColorScheme: UIUserInterfaceStyle = .unspecified
+    var useCustomImageEditor = false
 
     lazy var logoutButton: UIButton = {
         let button = UIButton(type: .system)
@@ -159,6 +169,7 @@ final class DemoQuickEditorViewController: UIViewController {
             profileSummaryView,
             colorSchemeLabel,
             schemeToggle,
+            imageEditorToggle,
             layoutButton,
             logoutButton,
             showButton
@@ -188,19 +199,34 @@ final class DemoQuickEditorViewController: UIViewController {
     func presentQuickEditor() {
         guard let email = emailField.text else { return }
         savedEmail = email
+        let imageEditorProvider: CustomImageEditorControllerProvider? = {
+            if self.useCustomImageEditor {
+                return { image, callback in
+                    return MyCustomImageEditorController(inputImage: image, editingDidFinish: callback)
+                }
+            } else {
+                return nil
+            }
+        }()
+
         let presenter = QuickEditorPresenter(
             email: Email(email),
             scope: .avatarPicker(AvatarPickerConfiguration(contentLayout: selectedLayout.contentLayout)),
             configuration: .init(
-                interfaceStyle: customColorScheme
+                interfaceStyle: customColorScheme,
+                customImageEditorProvider: imageEditorProvider
             ),
             token: token
         )
-        presenter.present(in: self, onAvatarUpdated: { [weak self] in
-            self?.profileSummaryView.loadAvatar(with: .email(email), rating: .x, options: [.forceRefresh])
-        } , onDismiss: { [weak self] in
-            self?.updateLogoutButton()
-        })
+        presenter.present(
+            in: self,
+            onAvatarUpdated: { [weak self] in
+                self?.profileSummaryView.loadAvatar(with: .email(email), rating: .x, options: [.forceRefresh])
+            },
+            onDismiss: { [weak self] in
+                self?.updateLogoutButton()
+            }
+        )
     }
 }
 
@@ -250,5 +276,78 @@ extension Email {
             && (dotIndex > atIndex)
             && (string[atIndex...].count > 4)
             && (string[dotIndex...].count > 2)
+    }
+}
+
+class MyCustomImageEditorController: UIViewController, CustomImageEditorController {
+    var inputImage: UIImage
+    var editingDidFinish: @Sendable (UIImage) -> Void
+
+    let label: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "This is a dummy image editor for test purposes only. It doesn't do anything other than passing the image back as it is when the button is tapped."
+        label.numberOfLines = 0
+        return label
+    }()
+
+    lazy var imageView: UIImageView = {
+        let imageView = UIImageView(image: inputImage)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.widthAnchor.constraint(equalToConstant: 300).isActive = true
+        imageView.heightAnchor.constraint(equalToConstant: 300).isActive = true
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+
+    let button: UIButton = {
+        let button = UIButton(configuration: .borderedTinted())
+        button.configuration?.title = "Done"
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    let rootStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.translatesAutoresizingMaskIntoConstraints = false
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 12
+        return stackView
+    }()
+
+    required init(
+        nibName nibNameOrNil: String? = nil,
+        bundle nibBundleOrNil: Bundle? = nil,
+        inputImage: UIImage,
+        editingDidFinish: @Sendable @escaping (UIImage) -> Void
+    ) {
+        self.inputImage = inputImage
+        self.editingDidFinish = editingDidFinish
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.addSubview(rootStackView)
+        NSLayoutConstraint.activate([
+            rootStackView.topAnchor.constraint(equalTo: view.topAnchor, constant: 22),
+            rootStackView.leadingAnchor.constraint(equalTo: view.readableContentGuide.leadingAnchor),
+            rootStackView.trailingAnchor.constraint(equalTo: view.readableContentGuide.trailingAnchor),
+        ])
+
+        rootStackView.addArrangedSubview(label)
+        rootStackView.addArrangedSubview(imageView)
+        rootStackView.addArrangedSubview(button)
+
+        button.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            editingDidFinish(inputImage)
+        }, for: .touchUpInside)
     }
 }

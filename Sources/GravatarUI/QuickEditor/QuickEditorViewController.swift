@@ -1,7 +1,11 @@
 import SwiftUI
 import UIKit
 
+public typealias CustomImageEditorControllerProvider = (UIImage, @escaping @Sendable (UIImage) -> Void) -> CustomImageEditorController
+
 final class QuickEditorViewController: UIViewController, ModalPresentationWithIntrinsicSize {
+    private typealias CustomImageEditorProvider = ImageEditorBlock<CustomImageEditorControllerRepresentable>?
+
     let email: Email
     let scope: QuickEditorScope
     let token: String?
@@ -28,25 +32,45 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
         }
     }
 
-    private lazy var quickEditor: InnerHeightUIHostingController = .init(rootView: QuickEditor(
-        email: email,
-        scope: scope.scopeType,
-        token: token,
-        isPresented: isPresented,
-        customImageEditor: nil as NoCustomEditorBlock?,
-        contentLayoutProvider: contentLayoutWithPresentation,
-        avatarUpdatedHandler: onAvatarUpdated
-    ), onHeightChange: { [weak self] newHeight in
-        guard let self else { return }
-        if self.shouldAcceptHeight(newHeight) {
-            self.sheetHeight = newHeight
+    private lazy var rootView: QuickEditor = {
+        let provider: CustomImageEditorProvider = if let customProvider = configuration.customImageEditorProvider {
+            { image, callback in
+                CustomImageEditorControllerRepresentable(
+                    controllerProvider: customProvider,
+                    inputImage: image,
+                    editingDidFinish: callback
+                )
+            }
+        } else {
+            nil as ImageEditorBlock<CustomImageEditorControllerRepresentable>?
         }
-        self.updateDetents()
-    }, onVerticalSizeClassChange: { [weak self] verticalSizeClass in
-        guard let self, verticalSizeClass != nil else { return }
-        self.verticalSizeClass = verticalSizeClass
-        self.updateDetents()
-    })
+
+        return QuickEditor(
+            email: email,
+            scope: scope.scopeType,
+            token: token,
+            isPresented: isPresented,
+            customImageEditor: provider,
+            contentLayoutProvider: contentLayoutWithPresentation,
+            avatarUpdatedHandler: onAvatarUpdated
+        )
+    }()
+
+    private lazy var quickEditor: InnerHeightUIHostingController = .init(
+        rootView: rootView,
+        onHeightChange: { [weak self] newHeight in
+            guard let self else { return }
+            if self.shouldAcceptHeight(newHeight) {
+                self.sheetHeight = newHeight
+            }
+            self.updateDetents()
+        },
+        onVerticalSizeClassChange: { [weak self] verticalSizeClass in
+            guard let self, verticalSizeClass != nil else { return }
+            self.verticalSizeClass = verticalSizeClass
+            self.updateDetents()
+        }
+    )
 
     init(
         email: Email,
@@ -186,4 +210,33 @@ public struct QuickEditorPresenter {
         quickEditor.overrideUserInterfaceStyle = configuration.interfaceStyle
         parent.present(quickEditor, animated: animated, completion: completion)
     }
+}
+
+@MainActor
+public protocol CustomImageEditorController: UIViewController {
+    var inputImage: UIImage { get }
+    var editingDidFinish: @Sendable (UIImage) -> Void { get }
+}
+
+private struct CustomImageEditorControllerRepresentable: UIViewControllerRepresentable, ImageEditorView {
+    var inputImage: UIImage
+    var editingDidFinish: @Sendable (UIImage) -> Void
+
+    let controllerProvider: CustomImageEditorControllerProvider
+
+    init(
+        controllerProvider: @escaping CustomImageEditorControllerProvider,
+        inputImage: UIImage,
+        editingDidFinish: @escaping @Sendable (UIImage) -> Void
+    ) {
+        self.controllerProvider = controllerProvider
+        self.inputImage = inputImage
+        self.editingDidFinish = editingDidFinish
+    }
+
+    func makeUIViewController(context: Context) -> UIViewController {
+        controllerProvider(inputImage, editingDidFinish)
+    }
+
+    func updateUIViewController(_ uiViewController: UIViewControllerType, context: Context) {}
 }

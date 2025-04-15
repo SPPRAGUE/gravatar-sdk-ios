@@ -2,6 +2,7 @@ import Foundation
 
 private let baseURL = URL(string: "https://api.gravatar.com/v3/profiles/")!
 private let avatarsBaseURLComponents = URLComponents(string: "https://api.gravatar.com/v3/me/avatars")!
+private let meProfileURL = URL(string: "https://api.gravatar.com/v3/me/profile")!
 
 private func selectAvatarBaseURL(with avatarID: String) -> URL? {
     URL(string: "https://api.gravatar.com/v3/me/avatars/\(avatarID)/email")
@@ -28,6 +29,13 @@ public struct ProfileService: ProfileFetching, Sendable {
     public func fetch(with profileID: ProfileIdentifier) async throws -> Profile {
         let url = baseURL.appending(pathComponent: profileID.id)
         let request = await URLRequest(url: url).authorized()
+        return try await fetch(with: request)
+    }
+
+    /// Fetches profile information for the authenticated user. Profile is created if it doesn't exist yet.
+    package func fetchOwnProfile(with token: String) async throws -> Profile {
+        var request = URLRequest(url: meProfileURL).settingAuthorizationHeaderField(with: token)
+        request.httpMethod = "GET"
         return try await fetch(with: request)
     }
 
