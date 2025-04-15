@@ -19,8 +19,6 @@ struct Toast: View {
     private(set) var toast: ToastItem
     private(set) var dismissHandler: (ToastItem) -> Void
 
-    @AccessibilityFocusState var focus: Bool
-
     var body: some View {
         HStack(spacing: 0) {
             Text(toast.message)
