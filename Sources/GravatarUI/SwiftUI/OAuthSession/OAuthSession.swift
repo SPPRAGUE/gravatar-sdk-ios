@@ -1,7 +1,7 @@
 import AuthenticationServices
 
 public struct OAuthSession: Sendable {
-    static let shared = OAuthSession()
+    public static let shared = OAuthSession()
     private var sessionData = SessionData()
 
     private let storage: SecureStorage
@@ -19,12 +19,7 @@ public struct OAuthSession: Sendable {
 
     /// Returns whether the user session remains active in the browser.
     public func getPrefersEphemeralWebBrowserSession() async -> Bool {
-        await Self.shared.sessionData.getPrefersEphemeralWebBrowserSession()
-    }
-
-    /// Returns whether the user session remains active in the browser.
-    public static func getPrefersEphemeralWebBrowserSession() async -> Bool {
-        await shared.getPrefersEphemeralWebBrowserSession()
+        await sessionData.getPrefersEphemeralWebBrowserSession()
     }
 
     /// Determines whether the user session remains active in the browser.
@@ -37,26 +32,14 @@ public struct OAuthSession: Sendable {
     ///
     /// See also:  https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/prefersephemeralwebbrowsersession
     public func setPrefersEphemeralWebBrowserSession(_ value: Bool) async {
-        await Self.shared.sessionData.setPrefersEphemeralWebBrowserSession(value)
-    }
-
-    /// Determines whether the user session remains active in the browser.
-    ///
-    /// When set to `true`, the user is required to enter their credentials from scratch during every OAuth flow.
-    /// Given that Gravatar access tokens expire after 2 weeks, this effectively means logging in every 2 weeks.
-    ///
-    /// When set to `false`, the user is still redirected through the OAuth flow every 2 weeks, but their session remains
-    /// active in the browser. As a result, they only need to authorize the app by tapping “Approve” without re-entering credentials.
-    ///
-    /// See also:  https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/prefersephemeralwebbrowsersession
-    public static func setPrefersEphemeralWebBrowserSession(_ value: Bool) async {
-        await shared.setPrefersEphemeralWebBrowserSession(value)
+        await sessionData.setPrefersEphemeralWebBrowserSession(value)
     }
 
     public func hasSession(with email: Email) -> Bool {
         (try? storage.secret(with: email.rawValue) ?? nil) != nil
     }
 
+    @available(*, deprecated, message: "Use OAuthSession.shared.hasSession(with:) instead.")
     public static func hasSession(with email: Email) -> Bool {
         shared.hasSession(with: email)
     }
@@ -83,6 +66,7 @@ public struct OAuthSession: Sendable {
         try? storage.deleteSecret(with: email.rawValue)
     }
 
+    @available(*, deprecated, message: "Use OAuthSession.shared.deleteSession(with:) instead.")
     public static func deleteSession(with email: Email) {
         shared.deleteSession(with: email)
     }
@@ -105,41 +89,44 @@ public struct OAuthSession: Sendable {
                 prefersEphemeralWebBrowserSession: sessionData.getPrefersEphemeralWebBrowserSession(),
                 callbackURLComponents: components
             )
-            _ = await Self.handleCallback(callbackURL)
+            _ = await handleCallback(callbackURL)
         } catch {
             throw OAuthError.from(error: error)
         }
     }
 
-    // Internal for tests purposes. This allows to inject a custom `shared` instance and a service double.
-    // The public version will call this function directly.
-    static func handleCallback(_ callbackURL: URL, shared: OAuthSession, checkTokenAuthorizationService: CheckTokenAuthorizationService) async -> Bool {
-        guard let email = await shared.sessionData.restore() else { return false }
+    func handleCallback(_ callbackURL: URL, checkTokenAuthorizationService: CheckTokenAuthorizationService) async -> Bool {
+        guard let email = await sessionData.restore() else { return false }
 
         do {
-            let tokenText = try shared.tokenResponse(from: callbackURL).token
+            let tokenText = try tokenResponse(from: callbackURL).token
             guard try await checkTokenAuthorizationService.isToken(tokenText, authorizedFor: email) else {
                 throw OAuthError.loggedInWithWrongEmail(email: email.rawValue)
             }
             let newToken = KeychainToken(token: tokenText)
-            shared.overrideToken(newToken, for: email)
-            await shared.authenticationSession.cancel()
-            postNotification(.authorizationFinished)
+            overrideToken(newToken, for: email)
+            await authenticationSession.cancel()
+            Self.postNotification(.authorizationFinished)
             return true
         } catch OAuthError.couldNotParseAccessCode {
-            await shared.authenticationSession.cancel()
-            postNotification(.authorizationFinished)
+            await authenticationSession.cancel()
+            Self.postNotification(.authorizationFinished)
             return false // The URL was not a Gravatar callback URL with a token.
         } catch {
-            await shared.authenticationSession.cancel()
-            postNotification(.authorizationError, error: error)
+            await authenticationSession.cancel()
+            Self.postNotification(.authorizationError, error: error)
             return true
         }
     }
 
+    public func handleCallback(_ callbackURL: URL) async -> Bool {
+        await handleCallback(callbackURL, checkTokenAuthorizationService: .init())
+    }
+
+    @available(*, deprecated, message: "Use OAuthSession.shared.handleCallback(_:) instead.")
     public static func handleCallback(_ callbackURL: URL) async -> Bool {
         // Call handleCallback() directly without adding extra logic here.
-        await handleCallback(callbackURL, shared: shared, checkTokenAuthorizationService: .init())
+        await shared.handleCallback(callbackURL)
     }
 
     private static func postNotification(_ name: Notification.Name, error: Error? = nil) {
