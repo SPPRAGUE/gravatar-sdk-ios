@@ -98,3 +98,25 @@ let view = config.makeContentView()
 
 ```
 
+#### SwiftUI ProfileViewRepresentable
+
+``ProfileViewRepresentable`` is a SwiftUI-compatible wrapper for the UIKit ProfileView, allowing it to be integrated seamlessly into SwiftUI views. It maintains parity with the UIKit version, exposing the same configuration struct and behavior, making it easy to use in SwiftUI without major changes.
+
+```swift
+import SwiftUI
+import GravatarUI
+
+struct ContentView: View {
+    @State 
+    private var profileConfiguration: ProfileViewConfiguration = .summary()
+    @State 
+    private var oneTimeAvatarForceRefresh: Bool = false
+
+    var body: some View {
+        ProfileViewRepresentable(
+            configuration: $profileConfiguration, 
+            oneTimeAvatarForceRefresh: $oneTimeAvatarForceRefresh
+        )
+    }
+}
+```

@@ -77,6 +77,13 @@ final class DemoQuickEditorViewController: UIViewController {
         return view
     }()
 
+    private lazy var prefersEphemeralSessionToggle: SwitchWithLabel = {
+        let view = SwitchWithLabel(labelText: "Prefers ephemeral browser session")
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.switchView.addTarget(self, action: #selector(togglePrefersEphemeralSession), for: .valueChanged)
+        return view
+    }()
+
     lazy var layoutButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -170,6 +177,7 @@ final class DemoQuickEditorViewController: UIViewController {
             colorSchemeLabel,
             schemeToggle,
             imageEditorToggle,
+            prefersEphemeralSessionToggle,
             layoutButton,
             logoutButton,
             showButton
@@ -227,6 +235,12 @@ final class DemoQuickEditorViewController: UIViewController {
                 self?.updateLogoutButton()
             }
         )
+    }
+    
+    @objc func togglePrefersEphemeralSession() {
+        Task {
+            await OAuthSession.setPrefersEphemeralWebBrowserSession(prefersEphemeralSessionToggle.isOn)
+        }
     }
 }
 

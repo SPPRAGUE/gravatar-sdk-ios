@@ -4,7 +4,9 @@ import UIKit
 
 /// SwiftUI View that represents the profile view variations:``ProfileView``, ``ProfileSummaryView``, ``LargeProfileView``, ``LargeProfileSummaryView``.
 public struct ProfileViewRepresentable: View {
+    /// A configuration that specifies the appearance and behavior of a ProfileView and its contents.
     @Binding public var configuration: ProfileViewConfiguration
+    /// Set to true to force a refresh of the avatar image.
     @Binding public var oneTimeAvatarForceRefresh: Bool
 
     public init(configuration: Binding<ProfileViewConfiguration>, oneTimeAvatarForceRefresh: Binding<Bool>) {

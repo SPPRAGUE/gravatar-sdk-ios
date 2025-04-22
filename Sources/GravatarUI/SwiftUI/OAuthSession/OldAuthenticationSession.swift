@@ -9,7 +9,7 @@ extension OldAuthenticationSession: ASWebAuthenticationPresentationContextProvid
 final class OldAuthenticationSession: NSObject, Sendable {
     private let sessionStorage = SessionStorage()
 
-    func authenticate(using url: URL, callbackURLComponents: URLComponents) async throws -> URL {
+    func authenticate(using url: URL, prefersEphemeralWebBrowserSession: Bool, callbackURLComponents: URLComponents) async throws -> URL {
         try await withCheckedThrowingContinuation { continuation in
             let session: ASWebAuthenticationSession
             let completionHandler = authSessionCompletionHandler(with: continuation)
@@ -32,6 +32,7 @@ final class OldAuthenticationSession: NSObject, Sendable {
             Task { @MainActor in
                 await sessionStorage.save(session)
                 session.presentationContextProvider = self
+                session.prefersEphemeralWebBrowserSession = prefersEphemeralWebBrowserSession
                 session.start()
             }
         }
