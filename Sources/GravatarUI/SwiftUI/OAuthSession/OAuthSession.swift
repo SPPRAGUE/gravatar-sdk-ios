@@ -2,7 +2,7 @@ import AuthenticationServices
 
 public struct OAuthSession: Sendable {
     static let shared = OAuthSession()
-    private var emailStorage = SessionEmailStorage()
+    private var sessionData = SessionData()
 
     private let storage: SecureStorage
     private let authenticationSession: AuthenticationSession
@@ -15,6 +15,42 @@ public struct OAuthSession: Sendable {
     init(authenticationSession: AuthenticationSession = OldAuthenticationSession(), storage: SecureStorage = Keychain()) {
         self.authenticationSession = authenticationSession
         self.storage = storage
+    }
+
+    /// Returns whether the user session remains active in the browser.
+    public func getPrefersEphemeralWebBrowserSession() async -> Bool {
+        await Self.shared.sessionData.getPrefersEphemeralWebBrowserSession()
+    }
+
+    /// Returns whether the user session remains active in the browser.
+    public static func getPrefersEphemeralWebBrowserSession() async -> Bool {
+        await shared.getPrefersEphemeralWebBrowserSession()
+    }
+
+    /// Determines whether the user session remains active in the browser.
+    ///
+    /// When set to `true`, the user is required to enter their credentials from scratch during every OAuth flow.
+    /// Given that Gravatar access tokens expire after 2 weeks, this effectively means logging in every 2 weeks.
+    ///
+    /// When set to `false`, the user is still redirected through the OAuth flow every 2 weeks, but their session remains
+    /// active in the browser. As a result, they only need to authorize the app by tapping “Approve” without re-entering credentials.
+    ///
+    /// See also:  https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/prefersephemeralwebbrowsersession
+    public func setPrefersEphemeralWebBrowserSession(_ value: Bool) async {
+        await Self.shared.sessionData.setPrefersEphemeralWebBrowserSession(value)
+    }
+
+    /// Determines whether the user session remains active in the browser.
+    ///
+    /// When set to `true`, the user is required to enter their credentials from scratch during every OAuth flow.
+    /// Given that Gravatar access tokens expire after 2 weeks, this effectively means logging in every 2 weeks.
+    ///
+    /// When set to `false`, the user is still redirected through the OAuth flow every 2 weeks, but their session remains
+    /// active in the browser. As a result, they only need to authorize the app by tapping “Approve” without re-entering credentials.
+    ///
+    /// See also:  https://developer.apple.com/documentation/authenticationservices/aswebauthenticationsession/prefersephemeralwebbrowsersession
+    public static func setPrefersEphemeralWebBrowserSession(_ value: Bool) async {
+        await shared.setPrefersEphemeralWebBrowserSession(value)
     }
 
     public func hasSession(with email: Email) -> Bool {
@@ -61,10 +97,14 @@ public struct OAuthSession: Sendable {
             throw OAuthError.notConfigured
         }
 
-        await emailStorage.save(email)
+        await sessionData.save(email)
         do {
             let url = try oauthURL(with: email, secrets: secrets)
-            let callbackURL = try await authenticationSession.authenticate(using: url, callbackURLComponents: components)
+            let callbackURL = try await authenticationSession.authenticate(
+                using: url,
+                prefersEphemeralWebBrowserSession: sessionData.getPrefersEphemeralWebBrowserSession(),
+                callbackURLComponents: components
+            )
             _ = await Self.handleCallback(callbackURL)
         } catch {
             throw OAuthError.from(error: error)
@@ -74,7 +114,7 @@ public struct OAuthSession: Sendable {
     // Internal for tests purposes. This allows to inject a custom `shared` instance and a service double.
     // The public version will call this function directly.
     static func handleCallback(_ callbackURL: URL, shared: OAuthSession, checkTokenAuthorizationService: CheckTokenAuthorizationService) async -> Bool {
-        guard let email = await shared.emailStorage.restore() else { return false }
+        guard let email = await shared.sessionData.restore() else { return false }
 
         do {
             let tokenText = try shared.tokenResponse(from: callbackURL).token
@@ -247,15 +287,24 @@ extension [URLQueryItem] {
 }
 
 protocol AuthenticationSession: Sendable {
-    func authenticate(using url: URL, callbackURLComponents: URLComponents) async throws -> URL
+    func authenticate(using url: URL, prefersEphemeralWebBrowserSession: Bool, callbackURLComponents: URLComponents) async throws -> URL
     func cancel() async
 }
 
 extension OldAuthenticationSession: AuthenticationSession {}
 
 // Stores the email used for the current OAuth flow
-private actor SessionEmailStorage {
-    var current: Email?
+private actor SessionData {
+    private var current: Email?
+    private var prefersEphemeralWebBrowserSessionStorage: Bool = false
+
+    func getPrefersEphemeralWebBrowserSession() -> Bool {
+        prefersEphemeralWebBrowserSessionStorage
+    }
+
+    func setPrefersEphemeralWebBrowserSession(_ value: Bool) {
+        prefersEphemeralWebBrowserSessionStorage = value
+    }
 
     func save(_ email: Email) {
         current = email

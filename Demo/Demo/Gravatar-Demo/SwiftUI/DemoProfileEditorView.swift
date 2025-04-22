@@ -16,6 +16,7 @@ struct DemoProfileEditorView: View {
     @State private var oneTimeAvatarForceRefresh: Bool = false
     @State private var isSecure: Bool = true
     @State var enableCustomImageCropper: Bool = false
+    @State var prefersEphemeralWebBrowserSession: Bool = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -51,6 +52,8 @@ struct DemoProfileEditorView: View {
                 
                 Divider()
                 Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
+                Divider()
+                Toggle("Prefers ephemeral browser session", isOn: $prefersEphemeralWebBrowserSession)
             }
             .padding(.horizontal)
                 Button("Open Profile Editor with OAuth flow") {
@@ -110,7 +113,11 @@ struct DemoProfileEditorView: View {
             updateHasSession(with: newValue)
             requestProfile()
         }
-        
+        .onChange(of: prefersEphemeralWebBrowserSession) { newValue in
+            Task {
+                await oauthSession.setPrefersEphemeralWebBrowserSession(prefersEphemeralWebBrowserSession)
+            }
+        }
     }
 
     func requestProfile() {
