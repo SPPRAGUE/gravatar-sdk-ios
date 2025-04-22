@@ -95,6 +95,8 @@ public struct OAuthSession: Sendable {
         }
     }
 
+    // Internal for tests purposes. This allows to inject a custom `shared` instance and a service double.
+    // The public version will call this function directly.
     func handleCallback(_ callbackURL: URL, checkTokenAuthorizationService: CheckTokenAuthorizationService) async -> Bool {
         guard let email = await sessionData.restore() else { return false }
 
