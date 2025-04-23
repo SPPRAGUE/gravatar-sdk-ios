@@ -172,12 +172,20 @@ private class InnerHeightUIHostingController: UIHostingController<AnyView> {
     }
 }
 
+/// A struct responsible for presenting the Quick Editor from a UIKit context.
 public struct QuickEditorPresenter {
     let email: Email
     let scope: QuickEditorScope
     let configuration: QuickEditorConfiguration
     let token: String?
 
+    /// Initializes the `QuickEditorPresenter` with the required parameters.
+    /// - Parameters:
+    ///   - email: User's email.
+    ///   - scope: The scope in which the editor is used.
+    ///   - configuration: Optional editor configuration. Defaults to `.default`.
+    ///   - token: Optional authorization token. If none is provided, an OAuth screen will be presented for the user to authorise this session. See
+    /// <doc:GravatarOAuth> for more info.
     public init(
         email: Email,
         scope: QuickEditorScope,
@@ -190,6 +198,13 @@ public struct QuickEditorPresenter {
         self.token = token
     }
 
+    /// Presents the Quick Editor
+    /// - Parameters:
+    ///   - parent: The UIViewController from which to present the Quick Editor.
+    ///   - animated: Whether the presentation should be animated. Defaults to `true`.
+    ///   - completion: An optional closure called after the presentation finishes.
+    ///   - onAvatarUpdated: An optional closure triggered when the avatar is updated.
+    ///   - onDismiss: An optional closure triggered when the editor is dismissed.
     @MainActor
     public func present(
         in parent: UIViewController,
@@ -212,9 +227,19 @@ public struct QuickEditorPresenter {
     }
 }
 
+/// A protocol defining a customizable image editor interface used in the Quick Editor flow.
+///
+/// This `UIViewController` subclass is presented after the user selects an image from their photo library and before it is uploaded to Gravatar. It provides an
+/// opportunity to:
+/// - Enforce a square aspect ratio.
+/// - Apply arbitrary, user-defined customizations to the image.
+///
+/// Conforming types must return the final edited image via the `editingDidFinish` closure.
 @MainActor
 public protocol CustomImageEditorController: UIViewController {
+    /// The input image selected by the user.
     var inputImage: UIImage { get }
+    /// A closure that must be called with the final edited image when editing is complete.
     var editingDidFinish: @Sendable (UIImage) -> Void { get }
 }
 
