@@ -124,7 +124,7 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
             AvatarPickerView(
                 model: model,
                 isPresented: $isPresented,
-                contentLayoutProvider: scope.avatarPickerConfig!.contentLayout,
+                contentLayoutProvider: scope.avatarPickerConfig.contentLayout,
                 customImageEditor: customImageEditor,
                 tokenErrorHandler: externalToken != nil ? nil : {
                     oauthSession.markSessionAsExpired(with: email)

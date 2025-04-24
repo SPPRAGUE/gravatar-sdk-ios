@@ -70,6 +70,49 @@ final class DemoQuickEditorViewController: UIViewController {
         }
     }
 
+    private var selectedScopeOption: QuickEditorScopeOption {
+        switch selectedScope {
+        case .avatarPicker:
+            .avatarPicker(.init(contentLayout: selectedLayout.contentLayout))
+        case .AboutEditor:
+            .aboutEditor(.init(presentationStyle: selectedVerticalContentPresentationStyle))
+        }
+
+    }
+    private var selectedScope: QEScope = .avatarPicker {
+        didSet {
+            scopeButton.setTitle("Scope: \(selectedScope.rawValue)", for: .normal)
+
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 0) {
+                self.imageEditorToggle.isHidden = self.selectedScope != .avatarPicker
+                self.imageEditorToggle.alpha = self.selectedScope != .avatarPicker ? 0 : 1
+                self.layoutButton.isHidden = self.selectedScope != .avatarPicker
+                self.layoutButton.alpha = self.selectedScope != .avatarPicker ? 0 : 1
+
+                self.aboutPresentationStyleButton.isHidden = self.selectedScope != .AboutEditor
+                self.aboutPresentationStyleButton.alpha = self.selectedScope != .AboutEditor ? 0 : 1
+            }
+        }
+    }
+    private var selectedVerticalContentPresentationStyle: VerticalContentPresentationStyle {
+        switch selectedVerticalContentPresentationStyleRepresentation {
+        case .expandableMedium:
+            print("MEDIUM")
+            return .expandableMedium()
+        case .large:
+            print("LARGE")
+            return .large
+        }
+    }
+    private var selectedVerticalContentPresentationStyleRepresentation: VerticalContentPresentationStyleRepresentation = .expandableMedium {
+        didSet {
+            aboutPresentationStyleButton.setTitle(
+                "Vertical Presentation Style: \(selectedVerticalContentPresentationStyleRepresentation.rawValue)",
+                for: .normal
+            )
+        }
+    }
+
     lazy var profileSummaryView: ProfileSummaryView = {
         let view = ProfileSummaryView(frame: .zero, paletteType: .system, profileButtonStyle: .edit)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -92,11 +135,49 @@ final class DemoQuickEditorViewController: UIViewController {
         return button
     }()
 
+    lazy var scopeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Scope: \(selectedScope.rawValue)", for: .normal)
+        button.addTarget(self, action: #selector(presentScopeOptions), for: .touchUpInside)
+        return button
+    }()
+
+    lazy var aboutPresentationStyleButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Vertical Presentation Style: \(selectedVerticalContentPresentationStyleRepresentation.rawValue)", for: .normal)
+        button.addTarget(self, action: #selector(presentVerticalPresentationStyleOptions), for: .touchUpInside)
+        button.isHidden = true
+        button.alpha = 0
+        return button
+    }()
+
     @objc func presentLayoutOptions() {
         let sheet = UIAlertController(title: "Layout Options", message: nil, preferredStyle: .actionSheet)
         AvatarPickerLayoutOptions.allCases.forEach { layout in
             sheet.addAction(.init(title: layout.rawValue, style: .default) { _ in
                 self.selectedLayout = layout
+            })
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc func presentScopeOptions() {
+        let sheet = UIAlertController(title: "Scope Options", message: nil, preferredStyle: .actionSheet)
+        QEScope.allCases.forEach { scope in
+            sheet.addAction(.init(title: scope.rawValue, style: .default) { _ in
+                self.selectedScope = scope
+            })
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc func presentVerticalPresentationStyleOptions() {
+        let sheet = UIAlertController(title: "Vertical Presentation Styles", message: nil, preferredStyle: .actionSheet)
+        VerticalContentPresentationStyleRepresentation.allCases.forEach { style in
+            sheet.addAction(.init(title: style.rawValue, style: .default) { _ in
+                self.selectedVerticalContentPresentationStyleRepresentation = style
             })
         }
         present(sheet, animated: true)
@@ -176,8 +257,10 @@ final class DemoQuickEditorViewController: UIViewController {
             profileSummaryView,
             colorSchemeLabel,
             schemeToggle,
-            imageEditorToggle,
             prefersEphemeralSessionToggle,
+            scopeButton,
+            imageEditorToggle,
+            aboutPresentationStyleButton,
             layoutButton,
             logoutButton,
             showButton
@@ -219,7 +302,7 @@ final class DemoQuickEditorViewController: UIViewController {
 
         let presenter = QuickEditorPresenter(
             email: Email(email),
-            scopeOption: .avatarPicker(AvatarPickerConfiguration(contentLayout: selectedLayout.contentLayout)),
+            scopeOption: selectedScopeOption,
             configuration: .init(
                 interfaceStyle: customColorScheme,
                 customImageEditorProvider: imageEditorProvider
@@ -371,4 +454,14 @@ class MyCustomImageEditorController: UIViewController, CustomImageEditorControll
             editingDidFinish(inputImage)
         }, for: .touchUpInside)
     }
+}
+
+private enum QEScope: String, CaseIterable, Hashable {
+    case avatarPicker = "Avatar Picker"
+    case AboutEditor = "About Editor"
+}
+
+private enum VerticalContentPresentationStyleRepresentation: String, CaseIterable, Hashable {
+    case large = "Large"
+    case expandableMedium = "Expandable Medium"
 }

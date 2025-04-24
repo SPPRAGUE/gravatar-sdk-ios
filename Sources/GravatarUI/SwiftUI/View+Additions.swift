@@ -172,12 +172,12 @@ extension View {
                 isPresented: isPresented,
                 onDismiss: onDismiss,
                 modalView: editor,
-                contentLayout: scope.avatarPickerConfig!.contentLayout
+                contentLayout: scope.avatarPickerConfig.contentLayout
             ))
         case .aboutInfoEditor:
             modifier(ModalVerticalPresentationWithStylesModifier(
                 isPresented: isPresented,
-                presentationStyle: scope.aboutEditorConfig!.presentationStyle,
+                presentationStyle: scope.aboutEditorConfig.presentationStyle,
                 onDismiss: onDismiss,
                 modalView: editor
             ))

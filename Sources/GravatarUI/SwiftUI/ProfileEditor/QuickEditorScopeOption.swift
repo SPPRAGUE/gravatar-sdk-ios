@@ -1,12 +1,12 @@
 public struct QuickEditorScopeOption {
-    let avatarPickerConfig: AvatarPickerConfiguration?
-    let aboutEditorConfig: AboutEditorConfiguration?
+    let avatarPickerConfig: AvatarPickerConfiguration
+    let aboutEditorConfig: AboutEditorConfiguration
     let scope: QuickEditorScopeType
 
     init(
         scope: QuickEditorScopeType,
-        avatarPickerConfig: AvatarPickerConfiguration? = nil,
-        aboutEditorConfig: AboutEditorConfiguration? = nil
+        avatarPickerConfig: AvatarPickerConfiguration = .horizontalInstrinsicHeight,
+        aboutEditorConfig: AboutEditorConfiguration = .init(presentationStyle: .expandableMedium())
     ) {
         self.avatarPickerConfig = avatarPickerConfig
         self.aboutEditorConfig = aboutEditorConfig

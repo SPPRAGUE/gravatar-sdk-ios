@@ -90,9 +90,9 @@ struct DemoProfileEditorView: View {
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
-                                scope: finalScope,
+                                scopeOption: finalScope,
                                 customImageEditor: customImageEditor(),
-                                avatarUpdatedHandler: {
+                                updatedHandler: {
                                     self.oneTimeAvatarForceRefresh = true
                                 },
                                 onDismiss: {

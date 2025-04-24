@@ -28,9 +28,9 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
     var contentLayoutWithPresentation: AvatarPickerContentLayout {
         switch scope.scope {
         case .avatarPicker:
-            scope.avatarPickerConfig!.contentLayout
-        default:
-            .vertical(presentationStyle: .expandableMedium())
+            scope.avatarPickerConfig.contentLayout
+        case .aboutInfoEditor:
+            .vertical(presentationStyle: scope.aboutEditorConfig.presentationStyle)
         }
     }
 
