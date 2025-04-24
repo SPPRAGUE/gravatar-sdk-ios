@@ -156,11 +156,7 @@ struct AvatarPickerAvatarView: View {
     }
 }
 
-extension Rating: CaseIterable {
-    public static var allCases: [Rating] {
-        [.general, .parentalGuidance, .restricted, .x]
-    }
-
+extension Rating {
     fileprivate var localizedSubtitle: String {
         switch self {
         case .general:
