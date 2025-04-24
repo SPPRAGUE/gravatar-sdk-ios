@@ -68,10 +68,16 @@ struct DemoProfileEditorView: View {
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
-                                scope: finalScope,
+                                scopeOption: finalScope,
                                 customImageEditor: customImageEditor(),
-                                avatarUpdatedHandler: {
-                                    self.oneTimeAvatarForceRefresh = true
+                                updatedHandler: { updateType in
+                                    switch updateType {
+                                        case .avatarUpdate:
+                                            self.oneTimeAvatarForceRefresh = true
+                                        case .aboutInfoUpdate:
+                                            break
+                                        default: break
+                                    }
                                 },
                                 onDismiss: {
                                     updateHasSession(with: email)
@@ -80,7 +86,7 @@ struct DemoProfileEditorView: View {
                     }
                     else {
                         view
-                            .gravatarQuickEditorSheetOld(
+                            .gravatarQuickEditorSheet(
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
@@ -122,12 +128,12 @@ struct DemoProfileEditorView: View {
         }
     }
 
-    var finalScope: QuickEditorScopeStruct {
+    var finalScope: QuickEditorScopeOption {
         switch scope {
             case .avatarPicker:
-                return QuickEditorScopeStruct.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
+                return QuickEditorScopeOption.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
             case .aboutInfoEditor:
-                return QuickEditorScopeStruct.aboutEditor(.init(presentationStyle: verticalPresentationStyle))
+                return QuickEditorScopeOption.aboutEditor(.init(presentationStyle: verticalPresentationStyle))
         }
     }
 

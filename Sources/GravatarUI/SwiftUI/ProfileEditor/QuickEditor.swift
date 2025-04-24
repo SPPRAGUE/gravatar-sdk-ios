@@ -7,6 +7,7 @@ public enum QuickEditorScopeType: String, CaseIterable, Sendable {
     case aboutInfoEditor = "About Editor"
 }
 
+@available(*, deprecated, renamed: "QEScope")
 public enum QuickEditorScope: Sendable {
     case avatarPicker(AvatarPickerConfiguration)
 
@@ -16,6 +17,17 @@ public enum QuickEditorScope: Sendable {
             .avatarPicker
         }
     }
+}
+
+public struct QuickEditorUpdateType: Sendable, Equatable {
+    private enum QEUpdateType {
+        case avatarUpdate
+        case aboutInfoUpdate
+    }
+    private let rawValue: QEUpdateType
+
+    public static let avatarUpdate = Self(rawValue: .avatarUpdate)
+    public static let aboutInfoUpdate = Self(rawValue: .aboutInfoUpdate)
 }
 
 struct QuickEditor<ImageEditor: ImageEditorView>: View {
@@ -37,39 +49,39 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
 
     private let externalToken: String?
     private var token: String? { externalToken ?? fetchedToken }
-    private let scope: QuickEditorScopeStruct
+    private let scope: QuickEditorScopeOption
     private let email: Email
     private let customImageEditor: ImageEditorBlock<ImageEditor>?
-    private let avatarUpdatedHandler: (() -> Void)?
+    private let updatedHandler: ((QuickEditorUpdateType) -> Void)?
 
     init(
         email: Email,
-        scope: QuickEditorScopeStruct,
+        scope: QuickEditorScopeOption,
         token: String? = nil,
         isPresented: Binding<Bool>,
         customImageEditor: ImageEditorBlock<ImageEditor>? = nil,
-        avatarUpdatedHandler: (() -> Void)? = nil
+        updatedHandler: ((QuickEditorUpdateType) -> Void)? = nil
     ) {
         self.email = email
         self.scope = scope
         self._isPresented = isPresented
         self.customImageEditor = customImageEditor
         self.externalToken = token
-        self.avatarUpdatedHandler = avatarUpdatedHandler
+        self.updatedHandler = updatedHandler
         self._model = StateObject(wrappedValue: AvatarPickerViewModel(email: email, authToken: token))
     }
 
     init(
         email: Email,
-        scope: QuickEditorScopeStruct,
+        scope: QuickEditorScopeOption,
         token: String? = nil,
         isPresented: Binding<Bool>,
-        avatarUpdatedHandler: (() -> Void)? = nil
+        updatedHandler: ((QuickEditorUpdateType) -> Void)? = nil
     ) {
         self.email = email
         self._isPresented = isPresented
         self.externalToken = token
-        self.avatarUpdatedHandler = avatarUpdatedHandler
+        self.updatedHandler = updatedHandler
         self._model = StateObject(wrappedValue: AvatarPickerViewModel(email: email, authToken: token))
         self.scope = scope
         self.customImageEditor = nil
@@ -117,13 +129,12 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
                     oauthSession.markSessionAsExpired(with: email)
                     performAuthentication()
                 },
-                avatarUpdatedHandler: avatarUpdatedHandler
+                avatarUpdatedHandler: {
+                    updatedHandler?(.avatarUpdate)
+                }
             )
         case .aboutInfoEditor:
             Text("About info view")
-//            AboutInfoView(
-//                model: model
-//            )
         }
     }
 
