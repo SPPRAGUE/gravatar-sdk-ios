@@ -15,7 +15,7 @@ class AvatarPickerViewModel: ObservableObject {
         }
     }
 
-    private var avatarSelectionTask: Task<Avatar?, Never>?
+    private var avatarSelectionTask: Task<AvatarDetails?, Never>?
     private var authToken: String?
     private var selectedAvatarResult: Result<String, Error>? {
         didSet {
@@ -126,7 +126,7 @@ class AvatarPickerViewModel: ObservableObject {
         .store(in: &cancellables)
     }
 
-    func selectAvatar(with id: String) async -> Avatar? {
+    func selectAvatar(with id: String) async -> AvatarDetails? {
         guard
             let authToken,
             grid.selectedAvatar?.id != id,
@@ -169,7 +169,7 @@ class AvatarPickerViewModel: ObservableObject {
         return nil
     }
 
-    func postAvatarSelection(with avatarID: String, authToken: String, identifier: ProfileIdentifier) async -> Avatar? {
+    func postAvatarSelection(with avatarID: String, authToken: String, identifier: ProfileIdentifier) async -> AvatarDetails? {
         defer {
             grid.setState(to: .loaded, onAvatarWithID: avatarID)
         }
@@ -177,10 +177,10 @@ class AvatarPickerViewModel: ObservableObject {
         grid.setState(to: .loading, onAvatarWithID: avatarID)
 
         do {
-            let selectedAvatar = try await profileService.selectAvatar(token: authToken, profileID: identifier, avatarID: avatarID)
+            let selectedAvatar = try await profileService.selectAvatar(profileID: identifier, token: authToken, avatarID: avatarID)
             toastManager.showToast(Localized.avatarUpdateSuccess, type: .info)
             grid.replaceModel(withID: avatarID, with: .init(with: selectedAvatar))
-            selectedAvatarResult = .success(selectedAvatar.imageId)
+            selectedAvatarResult = .success(selectedAvatar.imageID)
             return selectedAvatar
         } catch APIError.responseError(let reason) where reason.cancelled {
             // NoOp.
@@ -204,7 +204,7 @@ class AvatarPickerViewModel: ObservableObject {
 
         do {
             isAvatarsLoading = true
-            let images = try await profileService.fetchAvatars(with: authToken, id: .email(email))
+            let images = try await profileService.fetchAvatars(profileID: .email(email), token: authToken)
             grid.setAvatars(images.map(AvatarImageModel.init))
             if let selectedAvatar = grid.selectedAvatar {
                 selectedAvatarURL = selectedAvatar.url
@@ -222,7 +222,7 @@ class AvatarPickerViewModel: ObservableObject {
         guard let authToken else { return }
         do {
             isProfileLoading = true
-            let profile = try await profileService.fetchOwnProfile(with: authToken)
+            let profile = try await profileService.fetchOwnProfile(token: authToken)
             profileResult = .success(profile)
             isProfileLoading = false
         } catch {
@@ -240,7 +240,7 @@ class AvatarPickerViewModel: ObservableObject {
 
         let localID = UUID().uuidString
 
-        let localImageModel = AvatarImageModel(id: localID, source: .local(image: image), state: .loading, isSelected: false, rating: .g, altText: "")
+        let localImageModel = AvatarImageModel(id: localID, source: .local(image: image), state: .loading, isSelected: false, rating: .general, altText: "")
         grid.append(localImageModel)
 
         await doUpload(squareImage: image, localID: localID, accessToken: authToken)
@@ -268,15 +268,15 @@ class AvatarPickerViewModel: ObservableObject {
                 accessToken: accessToken,
                 selectionBehavior: .selectUploadedImageIfNoneSelected(for: email)
             )
-            ImageCache.shared.setEntry(.ready(squareImage), for: avatar.url)
+            ImageCache.shared.setEntry(.ready(squareImage), for: avatar.imageURL)
 
             let newModel = AvatarImageModel(with: avatar)
             grid.replaceModel(withID: localID, with: newModel)
 
             if avatar.isSelected {
-                grid.selectAvatar(withID: avatar.id)
-                self.selectedAvatarURL = URL(string: avatar.url)
-                self.backendSelectedAvatarURL = URL(string: avatar.url)
+                grid.selectAvatar(withID: avatar.imageID)
+                self.selectedAvatarURL = URL(string: avatar.imageURL)
+                self.backendSelectedAvatarURL = URL(string: avatar.imageURL)
             }
         } catch ImageUploadError.responseError(reason: let .invalidHTTPStatusCode(response, errorPayload))
             where response.statusCode == HTTPStatus.badRequest.rawValue || response.statusCode == HTTPStatus.payloadTooLarge.rawValue
@@ -325,7 +325,7 @@ class AvatarPickerViewModel: ObservableObject {
             source: .local(image: squareImage),
             state: .error(supportsRetry: supportsRetry, errorMessage: errorMessage),
             isSelected: false,
-            rating: storedModel?.rating ?? .g,
+            rating: storedModel?.rating ?? .general,
             altText: storedModel?.altText ?? ""
         )
         grid.replaceModel(withID: imageID, with: newModel)
@@ -396,14 +396,14 @@ class AvatarPickerViewModel: ObservableObject {
     }
 
     @discardableResult
-    func update(rating: AvatarRating, for avatar: AvatarImageModel) async -> Bool {
+    func update(rating: Rating, for avatar: AvatarImageModel) async -> Bool {
         guard let authToken else { return false }
 
         do {
             let updatedAvatar = try await avatarService.updateAvatar(
                 avatarID: avatar.id,
                 accessToken: authToken,
-                rating: rating.toRating()
+                rating: rating
             )
             toastManager.showToast(Localized.avatarRatingUpdateSuccess, type: .info)
             withAnimation {
@@ -551,6 +551,6 @@ extension AvatarImageModel {
         state = .loaded
         isSelected = avatar.isSelected
         altText = avatar.altText
-        rating = avatar.imageRating.toAvatarRating()
+        rating = avatar.imageRating
     }
 }

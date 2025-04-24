@@ -33,26 +33,27 @@ public struct ProfileService: ProfileFetching, Sendable {
     }
 
     /// Fetches profile information for the authenticated user. Profile is created if it doesn't exist yet.
-    package func fetchOwnProfile(with token: String) async throws -> Profile {
+    public func fetchOwnProfile(token: String) async throws -> Profile {
         var request = URLRequest(url: meProfileURL).settingAuthorizationHeaderField(with: token)
         request.httpMethod = "GET"
         return try await fetch(with: request)
     }
 
-    package func fetchAvatars(with token: String, id: ProfileIdentifier) async throws -> [Avatar] {
+    package func fetchAvatars(profileID id: ProfileIdentifier, token: String) async throws -> [AvatarDetails] {
         do {
             guard let url = avatarsBaseURLComponents.settingQueryItems([.init(name: "selected_email_hash", value: id.id)]).url else {
                 throw APIError.requestError(reason: .urlInitializationFailed)
             }
             let request = URLRequest(url: url).settingAuthorizationHeaderField(with: token)
             let (data, _) = try await client.data(with: request)
-            return try data.decode()
+            let avatars: [Avatar] = try data.decode()
+            return avatars
         } catch {
             throw error.apiError()
         }
     }
 
-    package func selectAvatar(token: String, profileID: ProfileIdentifier, avatarID: String) async throws -> Avatar {
+    package func selectAvatar(profileID: ProfileIdentifier, token: String, avatarID: String) async throws -> AvatarDetails {
         guard let url = selectAvatarBaseURL(with: avatarID) else {
             throw APIError.requestError(reason: .urlInitializationFailed)
         }
@@ -62,7 +63,8 @@ public struct ProfileService: ProfileFetching, Sendable {
             request.httpMethod = "POST"
             request.httpBody = try SelectAvatarBody(emailHash: profileID.id).data
             let (data, _) = try await client.data(with: request)
-            return try data.decode()
+            let avatar: Avatar = try data.decode()
+            return avatar
         } catch {
             throw error.apiError()
         }

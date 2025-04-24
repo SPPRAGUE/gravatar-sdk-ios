@@ -55,6 +55,12 @@ public struct AvatarService: Sendable {
         return avatar
     }
 
+    @discardableResult
+    package func upload(_ image: UIImage, accessToken: String, selectionBehavior: AvatarSelection) async throws -> AvatarDetails {
+        let avatar: Avatar = try await upload(image, accessToken: accessToken, selectionBehavior: selectionBehavior)
+        return avatar
+    }
+
     /// Uploads an image to be used as the user's Gravatar profile image, and returns the `URLResponse` of the network tasks asynchronously. Throws
     /// ``ImageUploadError``.
     /// - Parameters:
@@ -63,7 +69,7 @@ public struct AvatarService: Sendable {
     ///   - avatarSelection: How to handle avatar selection after uploading a new avatar
     /// - Returns: An asynchronously-delivered `Avatar` instance, containing data of the newly created avatar.
     @discardableResult
-    package func upload(_ image: UIImage, accessToken: String, selectionBehavior: AvatarSelection) async throws -> Avatar {
+    private func upload(_ image: UIImage, accessToken: String, selectionBehavior: AvatarSelection) async throws -> Avatar {
         do {
             let (data, _) = try await imageUploader.uploadImage(
                 image.squared(),
@@ -71,7 +77,8 @@ public struct AvatarService: Sendable {
                 avatarSelection: selectionBehavior,
                 additionalHTTPHeaders: nil
             )
-            return try data.decode()
+            let avatar: Avatar = try data.decode()
+            return avatar
         } catch let error as ImageUploadError {
             throw error
         } catch {
