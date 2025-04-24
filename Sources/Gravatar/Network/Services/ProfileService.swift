@@ -39,7 +39,12 @@ public struct ProfileService: ProfileFetching, Sendable {
         return try await fetch(with: request)
     }
 
-    package func fetchAvatars(profileID id: ProfileIdentifier, token: String) async throws -> [AvatarDetails] {
+    /// Fetch previously uploaded avatars for the given profile.
+    /// - Parameters:
+    ///   - id: The profile ID of the user.
+    ///   - token: Gravatar OAuth2 token.
+    /// - Returns: List of avatars the user has uploaded so far.
+    public func fetchAvatars(profileID id: ProfileIdentifier, token: String) async throws -> [AvatarDetails] {
         do {
             guard let url = avatarsBaseURLComponents.settingQueryItems([.init(name: "selected_email_hash", value: id.id)]).url else {
                 throw APIError.requestError(reason: .urlInitializationFailed)
@@ -53,8 +58,15 @@ public struct ProfileService: ProfileFetching, Sendable {
         }
     }
 
-    package func selectAvatar(profileID: ProfileIdentifier, token: String, avatarID: String) async throws -> AvatarDetails {
-        guard let url = selectAvatarBaseURL(with: avatarID) else {
+    /// Sets the user's public avatar with one of the previously uploaded avatars.
+    /// - Parameters:
+    ///   - profileID: The profile ID of the user.
+    ///   - token: Gravatar OAuth2 token.
+    ///   - imageID: ID of the avatar to be set as public avatar. This is the ID of each avatar that returns us via `/v3/me/avatars`. See:
+    /// ``AvatarDetails``.`imageID`.
+    /// - Returns: The details of the new avatar.
+    public func setPublicAvatar(profileID: ProfileIdentifier, token: String, imageID: ImageID) async throws -> AvatarDetails {
+        guard let url = selectAvatarBaseURL(with: imageID) else {
             throw APIError.requestError(reason: .urlInitializationFailed)
         }
 

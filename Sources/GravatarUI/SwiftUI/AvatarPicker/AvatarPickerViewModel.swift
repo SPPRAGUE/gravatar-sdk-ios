@@ -177,7 +177,7 @@ class AvatarPickerViewModel: ObservableObject {
         grid.setState(to: .loading, onAvatarWithID: avatarID)
 
         do {
-            let selectedAvatar = try await profileService.selectAvatar(profileID: identifier, token: authToken, avatarID: avatarID)
+            let selectedAvatar = try await profileService.setPublicAvatar(profileID: identifier, token: authToken, imageID: avatarID)
             toastManager.showToast(Localized.avatarUpdateSuccess, type: .info)
             grid.replaceModel(withID: avatarID, with: .init(with: selectedAvatar))
             selectedAvatarResult = .success(selectedAvatar.imageID)
@@ -377,7 +377,7 @@ class AvatarPickerViewModel: ObservableObject {
     func update(altText: String, for avatar: AvatarImageModel) async -> Bool {
         guard let token = self.authToken else { return false }
         do {
-            let updatedAvatar = try await avatarService.updateAvatar(avatarID: avatar.id, accessToken: token, altText: altText)
+            let updatedAvatar = try await avatarService.updateAvatar(imageID: avatar.id, accessToken: token, altText: altText)
             withAnimation {
                 grid.replaceModel(withID: avatar.id, with: .init(with: updatedAvatar))
             }
@@ -401,7 +401,7 @@ class AvatarPickerViewModel: ObservableObject {
 
         do {
             let updatedAvatar = try await avatarService.updateAvatar(
-                avatarID: avatar.id,
+                imageID: avatar.id,
                 accessToken: authToken,
                 rating: rating
             )
@@ -455,7 +455,7 @@ class AvatarPickerViewModel: ObservableObject {
         previouslySelectedAvatar: AvatarImageModel?
     ) async -> Bool {
         do {
-            try await avatarService.delete(avatarID: avatar.id, accessToken: token)
+            try await avatarService.delete(imageID: avatar.id, accessToken: token)
             return true
         } catch APIError.responseError(let reason) where reason.httpStatusCode == 404 {
             return true // no-op. We delete a not-found avatar from the UI.

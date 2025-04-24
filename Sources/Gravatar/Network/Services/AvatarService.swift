@@ -88,11 +88,11 @@ public struct AvatarService: Sendable {
 
     /// Deletes the avatar.
     /// - Parameters:
-    ///   - avatarID: Avatar ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...) from`
+    ///   - imageID: Image ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...)` from
     /// ``ProfileService``.
-    ///   - accessToken: The authentication token for the user. This is a Gravatar OAuth2 access token.
-    public func delete(avatarID: ImageID, accessToken: String) async throws {
-        var request = URLRequest(url: .avatarsURL.appendingPathComponent(avatarID))
+    ///   - accessToken: Gravatar OAuth2 access token.
+    public func delete(imageID: ImageID, accessToken: String) async throws {
+        var request = URLRequest(url: .avatarsURL.appendingPathComponent(imageID))
         request.httpMethod = "DELETE"
         let authorizedRequest = request.settingAuthorizationHeaderField(with: accessToken)
         do {
@@ -104,7 +104,7 @@ public struct AvatarService: Sendable {
 
     /// Updates the avatar properties.
     /// - Parameters:
-    ///   - avatarID: Avatar ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...) from`
+    ///   - imageID: Image ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...) from`
     /// ``ProfileService``.
     ///   - accessToken: The authentication token for the user. This is a Gravatar OAuth2 access token.
     ///   - altText: The new alt text of the avatar. Passing `nil` keeps the current value.
@@ -112,12 +112,12 @@ public struct AvatarService: Sendable {
     /// - Returns: Updated avatar.
     @discardableResult
     public func updateAvatar(
-        avatarID: ImageID,
+        imageID: ImageID,
         accessToken: String,
         altText: String? = nil,
         rating: Rating? = nil
     ) async throws -> AvatarDetails {
-        var request = URLRequest(url: .avatarsURL.appendingPathComponent(avatarID))
+        var request = URLRequest(url: .avatarsURL.appendingPathComponent(imageID))
         request.httpMethod = "PATCH"
         let updateBody = UpdateAvatarRequest(rating: rating?.toAvatarRating(), altText: altText)
         request.httpBody = try JSONEncoder().encode(updateBody)
