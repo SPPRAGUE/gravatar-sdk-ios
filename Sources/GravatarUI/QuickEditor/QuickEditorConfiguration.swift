@@ -13,21 +13,18 @@ public class QuickEditorConfiguration {
         self.interfaceStyle = interfaceStyle ?? .unspecified
         self.customImageEditorProvider = customImageEditorProvider
     }
-} 
+}
 
 /// Configuration which will be applied to the avatar picker screen.
-public struct AvatarPickerConfiguration<ImageEditor: ImageEditorView>: Sendable {
+public struct AvatarPickerConfiguration: Sendable {
     let contentLayout: AvatarPickerContentLayout
-    let customImageEditorProvider: ImageEditorBlock<ImageEditor>?
     let avatarUpdatedHandler: (() -> Void)? = nil
 
     public init(
-        contentLayout: AvatarPickerContentLayout,
-        customImageEditorProvider: ImageEditorBlock<ImageEditor>? = nil as NoCustomEditorBlock?
+        contentLayout: AvatarPickerContentLayout
 
     ) {
         self.contentLayout = contentLayout
-        self.customImageEditorProvider = customImageEditorProvider
     }
 
     @MainActor
@@ -37,7 +34,7 @@ public struct AvatarPickerConfiguration<ImageEditor: ImageEditorView>: Sendable 
 }
 
 public struct AboutEditorConfiguration: Sendable {
-
+    public init() {}
 }
 
 extension AvatarPickerConfiguration {

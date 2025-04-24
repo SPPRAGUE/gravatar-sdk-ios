@@ -2,9 +2,9 @@ import Gravatar
 import SwiftUI
 
 @available(iOS, deprecated: 16.0, renamed: "QuickEditorScope")
-public enum QuickEditorScopeType: Sendable {
-    case avatarPicker
-    case aboutInfoEditor
+public enum QuickEditorScopeType: String, CaseIterable, Sendable {
+    case avatarPicker = "Avatar Picker"
+    case aboutInfoEditor = "About Editor"
 }
 
 public enum QuickEditorScope: Sendable {
@@ -40,23 +40,20 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
     private let scope: QuickEditorScopeStruct
     private let email: Email
     private let customImageEditor: ImageEditorBlock<ImageEditor>?
-    private let contentLayoutProvider: AvatarPickerContentLayoutProviding?
     private let avatarUpdatedHandler: (() -> Void)?
 
     init(
         email: Email,
-        scope: QuickEditorScopeType,
+        scope: QuickEditorScopeStruct,
         token: String? = nil,
         isPresented: Binding<Bool>,
         customImageEditor: ImageEditorBlock<ImageEditor>? = nil,
-        contentLayoutProvider: AvatarPickerContentLayoutProviding = AvatarPickerContentLayoutType.vertical,
         avatarUpdatedHandler: (() -> Void)? = nil
     ) {
         self.email = email
-        self.scope = QuickEditorScopeStruct(scope: scope)
+        self.scope = scope
         self._isPresented = isPresented
         self.customImageEditor = customImageEditor
-        self.contentLayoutProvider = contentLayoutProvider
         self.externalToken = token
         self.avatarUpdatedHandler = avatarUpdatedHandler
         self._model = StateObject(wrappedValue: AvatarPickerViewModel(email: email, authToken: token))
@@ -76,7 +73,6 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
         self._model = StateObject(wrappedValue: AvatarPickerViewModel(email: email, authToken: token))
         self.scope = scope
         self.customImageEditor = nil
-        self.contentLayoutProvider = nil
     }
 
     let authorizationFinishedNotification = NotificationCenter.default.publisher(for: .authorizationFinished)
@@ -278,8 +274,7 @@ enum QuickEditorConstants {
 #Preview {
     QuickEditor<NoCustomEditor>(
         email: .init(""),
-        scope: .avatarPicker,
-        isPresented: .constant(true),
-        contentLayoutProvider: AvatarPickerContentLayout.vertical(presentationStyle: .large)
+        scope: .aboutEditor(.init()),
+        isPresented: .constant(true)
     )
 }

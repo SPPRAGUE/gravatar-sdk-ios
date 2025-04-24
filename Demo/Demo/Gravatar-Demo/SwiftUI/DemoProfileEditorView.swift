@@ -17,6 +17,7 @@ struct DemoProfileEditorView: View {
     @State private var isSecure: Bool = true
     @State var enableCustomImageCropper: Bool = false
     @State var prefersEphemeralWebBrowserSession: Bool = false
+    @State private var scope: QuickEditorScopeType = .avatarPicker
 
     var body: some View {
         VStack(spacing: 20) {
@@ -54,6 +55,18 @@ struct DemoProfileEditorView: View {
                 Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
                 Divider()
                 Toggle("Prefers ephemeral browser session", isOn: $prefersEphemeralWebBrowserSession)
+                Divider()
+                Menu {
+                    ForEach(QuickEditorScopeType.allCases, id: \.rawValue) { scope in
+                        Button(action: {
+                            self.scope = scope
+                        }) {
+                            Text(scope.rawValue)
+                        }
+                    }
+                } label: {
+                    Text("Scope: \(scope.rawValue)")
+                }
             }
             .padding(.horizontal)
                 Button("Open Profile Editor with OAuth flow") {
@@ -66,7 +79,7 @@ struct DemoProfileEditorView: View {
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
-                                scope: .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout)),
+                                scope: finalScope,
                                 customImageEditor: customImageEditor(),
                                 avatarUpdatedHandler: {
                                     self.oneTimeAvatarForceRefresh = true
@@ -78,11 +91,11 @@ struct DemoProfileEditorView: View {
                     }
                     else {
                         view
-                            .gravatarQuickEditorSheet(
+                            .gravatarQuickEditorSheetOld(
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
-                                scope: .avatarPicker,
+                                scope: finalScope,
                                 customImageEditor: customImageEditor(),
                                 avatarUpdatedHandler: {
                                     self.oneTimeAvatarForceRefresh = true
@@ -117,6 +130,15 @@ struct DemoProfileEditorView: View {
             Task {
                 await oauthSession.setPrefersEphemeralWebBrowserSession(prefersEphemeralWebBrowserSession)
             }
+        }
+    }
+
+    var finalScope: QuickEditorScopeStruct {
+        switch scope {
+            case .avatarPicker:
+                return QuickEditorScopeStruct.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
+            case .aboutInfoEditor:
+                return QuickEditorScopeStruct.aboutEditor(.init())
         }
     }
 

@@ -7,7 +7,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
     private typealias CustomImageEditorProvider = ImageEditorBlock<CustomImageEditorControllerRepresentable>?
 
     let email: Email
-    let scope: QuickEditorScope
+    let scope: QuickEditorScopeStruct
     let token: String?
     let configuration: QuickEditorConfiguration
     let onAvatarUpdated: (() -> Void)?
@@ -26,9 +26,11 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
     var verticalSizeClass: UserInterfaceSizeClass?
     var sheetHeight: CGFloat = QEModalPresentationConstants.bottomSheetEstimatedHeight
     var contentLayoutWithPresentation: AvatarPickerContentLayout {
-        switch scope {
-        case .avatarPicker(let config):
-            config.contentLayout
+        switch scope.scope {
+        case .avatarPicker:
+            scope.avatarPickerConfig!.contentLayout
+            default:
+                    .vertical(presentationStyle: .expandableMedium(initialFraction: 0.5, prioritizeScrollOverResize: false))
         }
     }
 
@@ -47,11 +49,10 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
         return QuickEditor(
             email: email,
-            scope: scope.scopeType,
+            scope: scope,
             token: token,
             isPresented: isPresented,
             customImageEditor: provider,
-            contentLayoutProvider: contentLayoutWithPresentation,
             avatarUpdatedHandler: onAvatarUpdated
         )
     }()
@@ -74,7 +75,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
     init(
         email: Email,
-        scope: QuickEditorScope,
+        scope: QuickEditorScopeStruct,
         configuration: QuickEditorConfiguration? = nil,
         token: String? = nil,
         onAvatarUpdated: (() -> Void)? = nil,
@@ -175,7 +176,7 @@ private class InnerHeightUIHostingController: UIHostingController<AnyView> {
 /// A struct responsible for presenting the Quick Editor from a UIKit context.
 public struct QuickEditorPresenter {
     let email: Email
-    let scope: QuickEditorScope
+    let scope: QuickEditorScopeStruct
     let configuration: QuickEditorConfiguration
     let token: String?
 
@@ -188,7 +189,7 @@ public struct QuickEditorPresenter {
     /// <doc:GravatarOAuth> for more info.
     public init(
         email: Email,
-        scope: QuickEditorScope,
+        scope: QuickEditorScopeStruct,
         configuration: QuickEditorConfiguration? = nil,
         token: String? = nil
     ) {

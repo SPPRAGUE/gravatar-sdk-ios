@@ -34,11 +34,11 @@ extension View {
     ///   - onDismiss: (Optional) A callback to execute when the sheet is dismissed.
     /// - Returns: A modifier to display the QuickEditor sheet.
     @available(iOS, deprecated: 16.0, message: "Use the new method that takes in `QuickEditorScope`.")
-    public func gravatarQuickEditorSheet(
+    public func gravatarQuickEditorSheetOld(
         isPresented: Binding<Bool>,
         email: String,
         authToken: String? = nil,
-        scope: QuickEditorScopeType,
+        scope: QuickEditorScopeStruct,
         customImageEditor: ImageEditorBlock<some ImageEditorView>? = nil as NoCustomEditorBlock?,
         avatarUpdatedHandler: (() -> Void)? = nil,
         onDismiss: (() -> Void)? = nil
@@ -49,7 +49,6 @@ extension View {
             token: authToken,
             isPresented: isPresented,
             customImageEditor: customImageEditor,
-            contentLayoutProvider: AvatarPickerContentLayoutType.vertical,
             avatarUpdatedHandler: avatarUpdatedHandler
         )
         return modifier(ModalPresentationModifier(isPresented: isPresented, onDismiss: onDismiss, modalView: editor))
@@ -68,32 +67,38 @@ extension View {
     ///   - onDismiss: (Optional) A callback to execute when the sheet is dismissed.
     /// - Returns: A modifier to display the QuickEditor sheet.
     @available(iOS 16.0, *)
+    @ViewBuilder
     public func gravatarQuickEditorSheet(
         isPresented: Binding<Bool>,
         email: String,
         authToken: String? = nil,
-        scope: QuickEditorScope,
+        scope: QuickEditorScopeStruct,
         customImageEditor: ImageEditorBlock<some ImageEditorView>? = nil as NoCustomEditorBlock?,
         avatarUpdatedHandler: (() -> Void)? = nil,
         onDismiss: (() -> Void)? = nil
     ) -> some View {
-        switch scope {
-        case .avatarPicker(let config):
             let editor = QuickEditor(
                 email: .init(email),
-                scope: scope.scopeType,
+                scope: scope,
                 token: authToken,
                 isPresented: isPresented,
                 customImageEditor: customImageEditor,
-                contentLayoutProvider: config.contentLayout,
                 avatarUpdatedHandler: avatarUpdatedHandler
             )
-            return modifier(AvatarPickerModalPresentationModifier(
-                isPresented: isPresented,
-                onDismiss: onDismiss,
-                modalView: editor,
-                contentLayout: config.contentLayout
-            ))
+        switch scope.scope {
+            case .avatarPicker:
+                modifier(AvatarPickerModalPresentationModifier(
+                    isPresented: isPresented,
+                    onDismiss: onDismiss,
+                    modalView: editor,
+                    contentLayout: scope.avatarPickerConfig!.contentLayout
+                ))
+            default:
+                modifier(ModalPresentationModifier(
+                    isPresented: isPresented,
+                    onDismiss: onDismiss,
+                    modalView: editor
+                ))
         }
     }
 
