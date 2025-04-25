@@ -471,7 +471,7 @@ class MyCustomImageEditorController: UIViewController, CustomImageEditorControll
     }
 }
 
-private enum QEScope: String, CaseIterable, Hashable {
+enum QEScope: String, CaseIterable, Hashable {
     case avatarPicker = "Avatar Picker"
     case aboutEditor = "About Editor"
 }

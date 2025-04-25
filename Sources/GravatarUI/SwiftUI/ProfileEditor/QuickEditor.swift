@@ -1,13 +1,13 @@
 import Gravatar
 import SwiftUI
 
-@available(iOS, deprecated: 16.0, renamed: "QuickEditorScope")
-public enum QuickEditorScopeType: String, CaseIterable, Sendable {
-    case avatarPicker = "Avatar Picker"
-    case aboutInfoEditor = "About Editor"
+@available(iOS, deprecated: 16.0, renamed: "QuickEditorScopeOption", message: "This will become internal in a next mayor release.")
+public enum QuickEditorScopeType: Sendable {
+    case avatarPicker
+    case aboutInfoEditor
 }
 
-@available(*, deprecated, renamed: "QEScope")
+@available(*, deprecated, renamed: "QuickEditorScopeOption")
 public enum QuickEditorScope: Sendable {
     case avatarPicker(AvatarPickerConfiguration)
 
@@ -19,6 +19,7 @@ public enum QuickEditorScope: Sendable {
     }
 }
 
+/// Represents the type of update that triggered a callback in the Quick Editor.
 public struct QuickEditorUpdateType: Sendable, Equatable {
     private enum QEUpdateType {
         case avatarUpdate
@@ -27,7 +28,9 @@ public struct QuickEditorUpdateType: Sendable, Equatable {
 
     private let rawValue: QEUpdateType
 
+    /// Indicates that the update was triggered by a change to the user's avatar.
     public static let avatarUpdate = Self(rawValue: .avatarUpdate)
+    /// Indicates that the update was triggered by a change to the user's about section information.
     public static let aboutInfoUpdate = Self(rawValue: .aboutInfoUpdate)
 }
 

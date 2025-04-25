@@ -19,14 +19,14 @@ struct QEContentLayoutPickerRow: View {
 }
 
 struct QEScopesPickerRow: View {
-    @Binding var scope: QuickEditorScopeType
+    @Binding var scope: QEScope
 
     var body: some View {
         HStack {
             Text("Scope")
             Spacer()
             Picker("Scope", selection: $scope) {
-                ForEach(QuickEditorScopeType.allCases, id: \.rawValue) { option in
+                ForEach(QEScope.allCases, id: \.rawValue) { option in
                     Text(option.rawValue).tag(option)
                 }
             }

@@ -17,7 +17,7 @@ struct DemoProfileEditorView: View {
     @State private var isSecure: Bool = true
     @State var enableCustomImageCropper: Bool = false
     @State var prefersEphemeralWebBrowserSession: Bool = false
-    @State private var scope: QuickEditorScopeType = .avatarPicker
+    @State private var scope: QEScope = .avatarPicker
     @State private var verticalPresentationStyle: VerticalContentPresentationStyle = .expandableMedium()
 
     var body: some View {
@@ -130,23 +130,23 @@ struct DemoProfileEditorView: View {
 
     var finalScope: QuickEditorScopeOption {
         switch scope {
-            case .avatarPicker:
-                return QuickEditorScopeOption.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
-            case .aboutInfoEditor:
-                return QuickEditorScopeOption.aboutEditor(.init(presentationStyle: verticalPresentationStyle))
+        case .avatarPicker:
+            return QuickEditorScopeOption.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
+        case .aboutEditor:
+            return QuickEditorScopeOption.aboutEditor(.init(presentationStyle: verticalPresentationStyle))
         }
     }
 
     @ViewBuilder
     func scopeOptions() -> some View {
         switch scope {
-            case .avatarPicker:
-                if #available(iOS 16.0, *) {
-                    QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
-                    Divider()
-                }
-                Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
-            case .aboutInfoEditor:
+        case .avatarPicker:
+            if #available(iOS 16.0, *) {
+                QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
+                Divider()
+            }
+            Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
+        case .aboutEditor:
                 QEVerticalStylePickerRow(verticalStyle: $verticalPresentationStyle)
         }
     }
