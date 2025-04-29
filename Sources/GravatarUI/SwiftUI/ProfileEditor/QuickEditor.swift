@@ -4,7 +4,6 @@ import SwiftUI
 @available(iOS, deprecated: 16.0, renamed: "QuickEditorScopeOption", message: "This will become internal in a next mayor release.")
 public enum QuickEditorScopeType: Sendable {
     case avatarPicker
-    case aboutInfoEditor
 }
 
 @available(*, deprecated, renamed: "QuickEditorScopeOption")

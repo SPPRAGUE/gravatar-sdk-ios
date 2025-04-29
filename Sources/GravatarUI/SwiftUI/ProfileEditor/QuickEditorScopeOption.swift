@@ -1,11 +1,16 @@
 /// Represents a profile editing scope with configuration options for each scope.
 public struct QuickEditorScopeOption {
+    enum Scope {
+        case avatarPicker
+        case aboutInfoEditor
+    }
+
     let avatarPickerConfig: AvatarPickerConfiguration
     let aboutEditorConfig: AboutEditorConfiguration
-    let scope: QuickEditorScopeType
+    let scope: Scope
 
     init(
-        scope: QuickEditorScopeType,
+        scope: Scope,
         avatarPickerConfig: AvatarPickerConfiguration = .horizontalInstrinsicHeight,
         aboutEditorConfig: AboutEditorConfiguration = .init(presentationStyle: .expandableMedium())
     ) {
