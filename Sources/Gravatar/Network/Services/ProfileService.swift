@@ -62,8 +62,7 @@ public struct ProfileService: ProfileFetching, Sendable {
     /// - Parameters:
     ///   - profileID: The profile ID of the user.
     ///   - token: Gravatar OAuth2 token.
-    ///   - imageID: ID of the avatar to be set as public avatar. This is the ID of each avatar that returns us via `/v3/me/avatars`. See:
-    /// ``AvatarDetails``.`imageID`.
+    ///   - imageID: ID of the avatar to be set as public avatar returned from the `/v3/me/avatars` endpoint. See: ``AvatarDetails/imageID``.
     /// - Returns: The details of the new avatar.
     public func setPublicAvatar(profileID: ProfileIdentifier, token: String, imageID: ImageID) async throws -> AvatarDetails {
         guard let url = selectAvatarBaseURL(with: imageID) else {

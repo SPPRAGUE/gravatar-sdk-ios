@@ -88,8 +88,7 @@ public struct AvatarService: Sendable {
 
     /// Deletes the avatar.
     /// - Parameters:
-    ///   - imageID: Image ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...)` from
-    /// ``ProfileService``.
+    ///   - imageID: Image ID of the avatar to be deleted returned from the `/v3/me/avatars` endpoint. See: ``ProfileService/fetchAvatars(profileID:token:)``.
     ///   - accessToken: Gravatar OAuth2 access token.
     public func delete(imageID: ImageID, accessToken: String) async throws {
         var request = URLRequest(url: .avatarsURL.appendingPathComponent(imageID))
@@ -104,8 +103,7 @@ public struct AvatarService: Sendable {
 
     /// Updates the avatar properties.
     /// - Parameters:
-    ///   - imageID: Image ID of the avatar to be deleted. This is the ID of each avatar that returns us via `/v3/me/avatars`. See: `fetchAvatars(...) from`
-    /// ``ProfileService``.
+    ///   - imageID: Image ID of the avatar to be deleted returned from the `/v3/me/avatars` endpoint. See: ``ProfileService/fetchAvatars(profileID:token:)``.
     ///   - accessToken: The authentication token for the user. This is a Gravatar OAuth2 access token.
     ///   - altText: The new alt text of the avatar. Passing `nil` keeps the current value.
     ///   - rating: The new rating of the avatar. Passing `nil` keeps the current value.
