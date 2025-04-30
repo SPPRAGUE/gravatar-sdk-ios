@@ -73,11 +73,7 @@ final class DemoQuickEditorViewController: UIViewController {
     private var selectedScopeOption: QuickEditorScopeOption {
         switch selectedScope {
         case .avatarPicker:
-            if #available(iOS 16.0, *) {
-                .avatarPicker(.init(contentLayout: selectedLayout.contentLayout))
-            } else {
-                .avatarPicker()
-            }
+            .avatarPicker(.init(contentLayout: selectedLayout.contentLayout))
         case .aboutEditor:
             .aboutEditor(.init(presentationStyle: selectedVerticalContentPresentationStyle))
         }

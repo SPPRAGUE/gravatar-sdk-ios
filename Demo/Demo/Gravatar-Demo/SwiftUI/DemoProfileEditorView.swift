@@ -62,26 +62,49 @@ struct DemoProfileEditorView: View {
                     isPresentingPicker.toggle()
                 }
                 .modifier { view in
-                    view
-                        .gravatarQuickEditorSheet(
-                            isPresented: $isPresentingPicker,
-                            email: email,
-                            authToken: !token.isEmpty ? token : nil,
-                            scopeOption: finalScope,
-                            customImageEditor: customImageEditor(),
-                            updateHandler: { updateType in
-                                switch updateType {
+                    if #available(iOS 16, *) {
+                        view
+                            .gravatarQuickEditorSheet(
+                                isPresented: $isPresentingPicker,
+                                email: email,
+                                authToken: !token.isEmpty ? token : nil,
+                                scopeOption: finalScope,
+                                customImageEditor: customImageEditor(),
+                                updateHandler: { updateType in
+                                    switch updateType {
                                     case .avatarUpdate:
                                         self.oneTimeAvatarForceRefresh = true
                                     case .aboutInfoUpdate:
                                         break
                                     default: break
+                                    }
+                                },
+                                onDismiss: {
+                                    updateHasSession(with: email)
                                 }
-                            },
-                            onDismiss: {
-                                updateHasSession(with: email)
-                            }
-                        ).environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
+                            ).environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
+                    } else {
+                        view
+                            .gravatarQuickEditorSheet(
+                                isPresented: $isPresentingPicker,
+                                email: email,
+                                authToken: !token.isEmpty ? token : nil,
+                                scopeOption: finalScopeiOS16,
+                                customImageEditor: customImageEditor(),
+                                updateHandler: { updateType in
+                                    switch updateType {
+                                    case .avatarUpdate:
+                                        self.oneTimeAvatarForceRefresh = true
+                                    case .aboutInfoUpdate:
+                                        break
+                                    default: break
+                                    }
+                                },
+                                onDismiss: {
+                                    updateHasSession(with: email)
+                                }
+                            ).environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
+                    }
                 }
             if hasSession {
                 Button("Log out") {
@@ -111,13 +134,18 @@ struct DemoProfileEditorView: View {
     var finalScope: QuickEditorScopeOption {
         switch scope {
         case .avatarPicker:
-            if #available(iOS 16.0, *) {
-                return QuickEditorScopeOption.avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
-            } else {
-                return QuickEditorScopeOption.avatarPicker()
-            }
+            .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
         case .aboutEditor:
-            return QuickEditorScopeOption.aboutEditor(.init(presentationStyle: verticalPresentationStyle))
+            .aboutEditor(.init(presentationStyle: verticalPresentationStyle))
+        }
+    }
+
+    var finalScopeiOS16: QuickEditorScopeOptionOld {
+        switch scope {
+        case .avatarPicker:
+            .avatarPicker()
+        case .aboutEditor:
+            .aboutEditor()
         }
     }
 
@@ -131,7 +159,9 @@ struct DemoProfileEditorView: View {
             }
             Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
         case .aboutEditor:
+            if #available(iOS 16.0, *) {
                 QEVerticalStylePickerRow(verticalStyle: $verticalPresentationStyle)
+            }
         }
     }
 
