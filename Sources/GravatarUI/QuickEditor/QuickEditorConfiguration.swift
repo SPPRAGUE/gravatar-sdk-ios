@@ -15,17 +15,24 @@ public class QuickEditorConfiguration {
     }
 }
 
-/// Configuration which will be applied to the avatar picker screen.
+/// Configuration which will be applied to the avatar picker.
 public struct AvatarPickerConfiguration: Sendable {
     let contentLayout: AvatarPickerContentLayout
 
-    public init(contentLayout: AvatarPickerContentLayout) {
+    public init(
+        contentLayout: AvatarPickerContentLayout
+    ) {
         self.contentLayout = contentLayout
     }
+}
 
-    static let `default` = AvatarPickerConfiguration(
-        contentLayout: .horizontal(presentationStyle: .intrinsicHeight)
-    )
+/// Configuration which will be applied to the About info editor.
+public struct AboutEditorConfiguration: Sendable {
+    let presentationStyle: VerticalContentPresentationStyle
+
+    public init(presentationStyle: VerticalContentPresentationStyle = .expandableMedium()) {
+        self.presentationStyle = presentationStyle
+    }
 }
 
 extension AvatarPickerConfiguration {

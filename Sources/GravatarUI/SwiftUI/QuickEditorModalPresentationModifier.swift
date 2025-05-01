@@ -14,8 +14,9 @@ enum QEModalPresentationConstants {
 }
 
 @available(iOS 16.0, *)
-struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, ModalPresentationWithIntrinsicSize {
+struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, ModalPresentationWithIntrinsicSize {
     fileprivate typealias Constants = QEModalPresentationConstants
+
     @Binding var isPresented: Bool
     @State private var isPresentedInner: Bool
     @State private var sheetHeight: CGFloat = Constants.bottomSheetEstimatedHeight
@@ -23,18 +24,19 @@ struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, Mod
     @State private var presentationDetents: Set<PresentationDetent>
     @State private var prioritizeScrollOverResize: Bool = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
+
     let onDismiss: (() -> Void)?
     let modalView: ModalView
-    var contentLayoutWithPresentation: AvatarPickerContentLayout
+    var scopeOption: QuickEditorScopeOption
 
-    init(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, modalView: ModalView, contentLayout: AvatarPickerContentLayout) {
+    init(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, modalView: ModalView, scopeOption: QuickEditorScopeOption) {
         self._isPresented = isPresented
         self.isPresentedInner = isPresented.wrappedValue
         self.onDismiss = onDismiss
         self.modalView = modalView
-        self.contentLayoutWithPresentation = contentLayout
+        self.scopeOption = scopeOption
         self.presentationDetents = QEDetent.detents(
-            for: contentLayout,
+            for: scopeOption,
             intrinsicHeight: Constants.bottomSheetEstimatedHeight,
             verticalSizeClass: nil
         ).map()
@@ -49,7 +51,7 @@ struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, Mod
                     // when switching between different presentation styles (especially between horizontal and vertical_large).
                     // Doing the same thing in .onAppear of the "modalView" doesn't give as nice results as this one don't know why.
                     self.presentationDetents = QEDetent.detents(
-                        for: contentLayoutWithPresentation,
+                        for: scopeOption,
                         intrinsicHeight: max(sheetHeight, Constants.bottomSheetEstimatedHeight),
                         verticalSizeClass: verticalSizeClass
                     ).map()
@@ -85,18 +87,19 @@ struct AvatarPickerModalPresentationModifier<ModalView: View>: ViewModifier, Mod
 
     private func updateDetents() {
         self.presentationDetents = QEDetent.detents(
-            for: contentLayoutWithPresentation,
+            for: scopeOption,
             intrinsicHeight: sheetHeight,
             verticalSizeClass: verticalSizeClass
         ).map()
-        self.prioritizeScrollOverResize = contentLayoutWithPresentation.prioritizeScrollOverResize
+        self.prioritizeScrollOverResize = shouldPrioritizeScrollOverResize
     }
 }
 
 @MainActor
 protocol ModalPresentationWithIntrinsicSize {
-    var contentLayoutWithPresentation: AvatarPickerContentLayout { get }
+    var scopeOption: QuickEditorScopeOption { get }
     var verticalSizeClass: UserInterfaceSizeClass? { get }
+    var shouldPrioritizeScrollOverResize: Bool { get }
 }
 
 extension ModalPresentationWithIntrinsicSize {
@@ -105,16 +108,30 @@ extension ModalPresentationWithIntrinsicSize {
     }
 
     var shouldUseIntrinsicSize: Bool {
-        switch contentLayoutWithPresentation {
-        case .horizontal:
-            switch verticalSizeClass {
-            case .compact:
+        switch scopeOption.scope {
+        case .avatarPicker:
+            switch scopeOption.avatarPickerConfig.contentLayout {
+            case .horizontal:
+                switch verticalSizeClass {
+                case .compact:
+                    false
+                default:
+                    true
+                }
+            case .vertical:
                 false
-            default:
-                true
             }
-        case .vertical:
+        case .aboutInfoEditor:
             false
+        }
+    }
+
+    var shouldPrioritizeScrollOverResize: Bool {
+        switch scopeOption.scope {
+        case .avatarPicker:
+            scopeOption.avatarPickerConfig.contentLayout.prioritizeScrollOverResize
+        case .aboutInfoEditor:
+            scopeOption.aboutEditorConfig.presentationStyle.prioritizeScrollOverResize
         }
     }
 }
