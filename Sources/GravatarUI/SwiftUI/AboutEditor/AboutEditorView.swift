@@ -3,7 +3,7 @@ import SwiftUI
 struct AboutEditorView: View {
     private enum Constants {
         static let primaryFont: Font = .subheadline
-        static let sectionHeaderFont: Font = .subheadline.weight(.bold)
+        static let sectionHeaderFont: Font = .subheadline.weight(.semibold)
         static let footerFont: Font = .footnote
     }
 
