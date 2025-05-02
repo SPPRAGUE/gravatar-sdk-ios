@@ -1,7 +1,7 @@
 @testable import GravatarUI
 import Testing
 
-@Suite("AboutInfoFieldTests")
+@Suite
 struct AboutInfoFieldTests {
     
     @Test
