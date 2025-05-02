@@ -49,6 +49,13 @@ public struct AboutInfoField: OptionSet, Sendable {
         .company,
     ]
 
+    var hasMultipleCategories: Bool {
+        (
+            (self.intersection(.personalFields).rawValue > 0 ? 1 : 0) +
+            (self.intersection(.professionalFields).rawValue > 0 ? 1 : 0)
+        ) > 1
+    }
+
     func localizedName() -> String {
         switch self {
         case .displayName:

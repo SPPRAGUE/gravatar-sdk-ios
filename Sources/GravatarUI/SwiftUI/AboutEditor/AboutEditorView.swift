@@ -16,7 +16,9 @@ struct AboutEditorView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 personalInfoContent()
-                Spacer().frame(height: .DS.Padding.double)
+                if fields.hasMultipleCategories {
+                    Spacer().frame(height: .DS.Padding.double)
+                }
                 professionalInfoContent()
             }
             .padding(.DS.Padding.double)
@@ -41,7 +43,7 @@ struct AboutEditorView: View {
 
     @ViewBuilder
     private func personalInfoContent() -> some View {
-        if hasMultipleSections {
+        if fields.hasMultipleCategories {
             sectionHeader(title: Localized.personalSectionHeaderText)
         }
         if fields.contains(.displayName) {
@@ -81,7 +83,7 @@ struct AboutEditorView: View {
 
     @ViewBuilder
     private func professionalInfoContent() -> some View {
-        if hasMultipleSections {
+        if fields.hasMultipleCategories {
             sectionHeader(title: Localized.professionalSectionHeaderText)
         }
         if fields.contains(.jobTitle) {
@@ -141,11 +143,6 @@ struct AboutEditorView: View {
         }
         .padding(.vertical, .DS.Padding.single)
         .frame(maxWidth: .infinity)
-    }
-
-    private var hasMultipleSections: Bool {
-        (fields.contains(.personalFields) ? 1 : 0) +
-            (fields.contains(.professionalFields) ? 1 : 0) > 1
     }
 
     private enum Localized {
