@@ -1,6 +1,12 @@
 import SwiftUI
 
 struct AboutEditorView: View {
+    private enum Constants {
+        static let primaryFont: Font = .subheadline
+        static let sectionHeaderFont: Font = .subheadline.weight(.bold)
+        static let footerFont: Font = .footnote
+    }
+
     @ObservedObject var model: AvatarPickerViewModel
     let fields: AboutInfoField
     @StateObject private var inputFields: AboutInputFields = .init()
@@ -9,17 +15,34 @@ struct AboutEditorView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: .DS.Padding.double) {
+            VStack(alignment: .leading, spacing: 0) {
                 personalInfoContent()
+                Spacer().frame(height: .DS.Padding.double)
+                professionalInfoContent()
             }
             .padding(.DS.Padding.double)
             .avatarPickerBorder(colorScheme: colorScheme, borderWidth: 1)
             .padding(.horizontal, .DS.Padding.double)
+            Spacer().frame(height: .DS.Padding.double)
+        }
+        saveButton()
+            .padding(.horizontal, .DS.Padding.large)
+            .padding(.bottom, .DS.Padding.double)
+    }
+
+    private func saveButton() -> some View {
+        Button {
+            print("")
+        } label: {
+            CTAButtonView(Localized.saveButtonTitle)
         }
     }
 
     @ViewBuilder
     private func personalInfoContent() -> some View {
+        if hasMultipleSections {
+            sectionHeader(title: Localized.personalSectionHeaderText)
+        }
         if fields.contains(.displayName) {
             inputField(
                 for: AboutInfoField.displayName.localizedName(),
@@ -55,6 +78,32 @@ struct AboutEditorView: View {
         }
     }
 
+    @ViewBuilder
+    private func professionalInfoContent() -> some View {
+        if hasMultipleSections {
+            sectionHeader(title: Localized.professionalSectionHeaderText)
+        }
+        if fields.contains(.jobTitle) {
+            inputField(
+                for: AboutInfoField.jobTitle.localizedName(),
+                value: $inputFields.jobTitle
+            )
+        }
+        if fields.contains(.company) {
+            inputField(
+                for: AboutInfoField.company.localizedName(),
+                value: $inputFields.company
+            )
+        }
+    }
+
+    private func sectionHeader(title: String) -> some View {
+        Text(title)
+            .font(Constants.sectionHeaderFont)
+            .multilineTextAlignment(.leading)
+            .padding(.bottom, .DS.Padding.single)
+    }
+
     private func inputField(
         for title: String,
         footerText: String? = nil,
@@ -63,11 +112,11 @@ struct AboutEditorView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: .DS.Padding.single) {
             Text(title)
-                .font(.subheadline)
+                .font(Constants.primaryFont)
                 .multilineTextAlignment(.leading)
             if isLarge {
                 TextEditor(text: value)
-                    .font(.subheadline)
+                    .font(Constants.primaryFont)
                     .multilineTextAlignment(.leading)
                     .padding(.DS.Padding.split)
                     .inputBorders(colorScheme: colorScheme)
@@ -77,19 +126,25 @@ struct AboutEditorView: View {
                     "",
                     text: value
                 )
-                .font(.subheadline)
+                .font(Constants.primaryFont)
                 .padding(.DS.Padding.split)
                 .inputBorders(colorScheme: colorScheme)
             }
 
             if let footerText {
                 Text(footerText)
-                    .font(.footnote)
+                    .font(Constants.footerFont)
                     .multilineTextAlignment(.leading)
                     .foregroundColor(Color(uiColor: UIColor.secondaryLabel))
             }
         }
+        .padding(.vertical, .DS.Padding.single)
         .frame(maxWidth: .infinity)
+    }
+
+    private var hasMultipleSections: Bool {
+        (fields.contains(.personalFields) ? 1 : 0) +
+            (fields.contains(.professionalFields) ? 1 : 0) > 1
     }
 
     private enum Localized {
@@ -103,6 +158,21 @@ struct AboutEditorView: View {
             value: "Let them know how your name sounds like.",
             comment: "Description for the 'Pronunciation' field in the profile editing screen."
         )
+        static let personalSectionHeaderText = SDKLocalizedString(
+            "Profile.Section.Personal.header",
+            value: "Personal",
+            comment: "Title of the personal info section in the profile editing screen."
+        )
+        static let professionalSectionHeaderText = SDKLocalizedString(
+            "Profile.Section.Professional.header",
+            value: "Professional",
+            comment: "Title of the professional/work info section in the profile editing screen."
+        )
+        static let saveButtonTitle = SDKLocalizedString(
+            "Profile.Save.title",
+            value: "Save",
+            comment: "Title of the button to save changes in the profile editing screen."
+        )
     }
 }
 
@@ -112,24 +182,30 @@ private class AboutInputFields: ObservableObject {
     @Published var pronunciation: String = ""
     @Published var pronouns: String = ""
     @Published var location: String = ""
+    @Published var jobTitle: String = ""
+    @Published var company: String = ""
 
-    func convertToUpdatedFields(for fields: AboutInfoField) -> UpdatedFields {
-        UpdatedFields(
+    func fieldsToUpdate(from fields: AboutInfoField) -> FieldsToUpdate {
+        FieldsToUpdate(
             displayName: fields.contains(.aboutMe) ? aboutMe : nil,
             aboutMe: fields.contains(.aboutMe) ? aboutMe : nil,
             pronunciation: fields.contains(.pronunciation) ? pronunciation : nil,
             pronouns: fields.contains(.pronouns) ? pronouns : nil,
-            location: fields.contains(.location) ? location : nil
+            location: fields.contains(.location) ? location : nil,
+            jobTitle: fields.contains(.jobTitle) ? jobTitle : nil,
+            company: fields.contains(.company) ? company : nil
         )
     }
 }
 
-struct UpdatedFields {
+struct FieldsToUpdate {
     var displayName: String? = nil
     var aboutMe: String? = nil
     var pronunciation: String? = nil
     var pronouns: String? = nil
     var location: String? = nil
+    var jobTitle: String? = nil
+    var company: String? = nil
 }
 
 extension View {
@@ -144,4 +220,12 @@ extension View {
 
 #Preview {
     AboutEditorView(model: .init(avatarImageModels: []), fields: .all)
+}
+
+#Preview("professional") {
+    AboutEditorView(model: .init(avatarImageModels: []), fields: .professionalFields)
+}
+
+#Preview("personal") {
+    AboutEditorView(model: .init(avatarImageModels: []), fields: .personalFields)
 }
