@@ -51,8 +51,8 @@ public struct AboutInfoField: OptionSet, Sendable {
 
     var hasMultipleCategories: Bool {
         (
-            (self.intersection(.personalFields).rawValue > 0 ? 1 : 0) +
-            (self.intersection(.professionalFields).rawValue > 0 ? 1 : 0)
+            (self.intersection(.personalFields).isEmpty ? 0 : 1) +
+                (self.intersection(.professionalFields).isEmpty ? 0 : 1)
         ) > 1
     }
 
