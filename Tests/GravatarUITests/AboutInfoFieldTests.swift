@@ -13,8 +13,8 @@ struct AboutInfoFieldTests {
             .pronouns,
             .location,
         ]
-        #expect(AboutInfoField.personalFields.contains(fields), "`AboutInfoField.personalFields` convenience property does not include necessary fields")
-        #expect(AboutInfoField.personalFields.symmetricDifference(fields).isEmpty, "`AboutInfoField.personalFields` convenience property has unwanted fields")
+        #expect(AboutInfoField.personalFields.contains(fields), "`AboutInfoField.personalFields` convenience property must contain the necessary fields")
+        #expect(AboutInfoField.personalFields.symmetricDifference(fields).isEmpty, "`AboutInfoField.personalFields` convenience must not have unwanted fields")
     }
     
     @Test
@@ -23,8 +23,8 @@ struct AboutInfoFieldTests {
             .jobTitle,
             .company,
         ]
-        #expect(AboutInfoField.professionalFields.contains(fields), "`AboutInfoField.professionalFields` convenience property does not include necessary fields")
-        #expect(AboutInfoField.professionalFields.symmetricDifference(fields).isEmpty, "`AboutInfoField.professionalFields` convenience property has unwanted fields")
+        #expect(AboutInfoField.professionalFields.contains(fields), "`AboutInfoField.professionalFields` convenience property must contain the necessary fields")
+        #expect(AboutInfoField.professionalFields.symmetricDifference(fields).isEmpty, "`AboutInfoField.professionalFields` convenience must not have unwanted fields")
     }
     
     @Test
@@ -39,8 +39,8 @@ struct AboutInfoFieldTests {
             .company,
         ]
 
-        #expect(AboutInfoField.all.contains(fields), "`AboutInfoField.all` convenience property does not include necessary fields")
-        #expect(AboutInfoField.all.symmetricDifference(fields).isEmpty, "`AboutInfoField.all` convenience property has unwanted fields")
+        #expect(AboutInfoField.all.contains(fields), "`AboutInfoField.all` convenience property must contain the necessary fields")
+        #expect(AboutInfoField.all.symmetricDifference(fields).isEmpty, "`AboutInfoField.all` convenience must not have unwanted fields")
     }
 
     @Test
@@ -61,7 +61,7 @@ struct AboutInfoFieldTests {
                 let mergedFields = personalField.union(professionalField)
                 #expect(
                     mergedFields.hasMultipleCategories == true,
-                    "Different combinations of `personal` and `professional` fields mean that there are multiple categories in this set. So we should expect `hasMultipleCategories` to be true."
+                    "Different combinations of `personal` and `professional` fields mean that there are multiple categories in this set. So we expect `hasMultipleCategories` to be true."
                 )
             }
         }
@@ -71,11 +71,11 @@ struct AboutInfoFieldTests {
     func testMultipleSectionsDontExist() async throws {
         #expect(
             AboutInfoField.personalFields.hasMultipleCategories == false,
-            "`personalFields` convenience property corresponds to a single category. So we should expect `hasMultipleCategories` to be false"
+            "`personalFields` convenience property corresponds to a single category. So we expect `hasMultipleCategories` to be false"
         )
         #expect(
             AboutInfoField.professionalFields.hasMultipleCategories == false,
-            "`professionalFields` convenience property corresponds to a single category. So we should expect `hasMultipleCategories` to be false"
+            "`professionalFields` convenience property corresponds to a single category. So we expect `hasMultipleCategories` to be false"
         )
     }
 }
