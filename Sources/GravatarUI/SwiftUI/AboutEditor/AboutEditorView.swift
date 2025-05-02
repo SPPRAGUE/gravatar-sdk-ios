@@ -9,7 +9,6 @@ struct AboutEditorView: View {
 
     @ObservedObject var model: AvatarPickerViewModel
     let fields: AboutInfoField
-    @StateObject private var inputFields: AboutInputFields = .init()
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
 
@@ -32,7 +31,9 @@ struct AboutEditorView: View {
 
     private func saveButton() -> some View {
         Button {
-            print("")
+            Task {
+                await self.model.saveAboutInfo(for: fields)
+            }
         } label: {
             CTAButtonView(Localized.saveButtonTitle)
         }
@@ -46,14 +47,14 @@ struct AboutEditorView: View {
         if fields.contains(.displayName) {
             inputField(
                 for: AboutInfoField.displayName.localizedName(),
-                value: $inputFields.displayName
+                value: $model.aboutInfoModel.displayName
             )
         }
         if fields.contains(.aboutMe) {
             inputField(
                 for: AboutInfoField.aboutMe.localizedName(),
                 footerText: Localized.aboutMeFooterText,
-                value: $inputFields.aboutMe,
+                value: $model.aboutInfoModel.aboutMe,
                 isLarge: true
             )
         }
@@ -61,19 +62,19 @@ struct AboutEditorView: View {
             inputField(
                 for: AboutInfoField.pronunciation.localizedName(),
                 footerText: Localized.pronunciationFooterText,
-                value: $inputFields.pronunciation
+                value: $model.aboutInfoModel.pronunciation
             )
         }
         if fields.contains(.pronouns) {
             inputField(
                 for: AboutInfoField.pronouns.localizedName(),
-                value: $inputFields.pronouns
+                value: $model.aboutInfoModel.pronouns
             )
         }
         if fields.contains(.location) {
             inputField(
                 for: AboutInfoField.location.localizedName(),
-                value: $inputFields.location
+                value: $model.aboutInfoModel.location
             )
         }
     }
@@ -86,13 +87,13 @@ struct AboutEditorView: View {
         if fields.contains(.jobTitle) {
             inputField(
                 for: AboutInfoField.jobTitle.localizedName(),
-                value: $inputFields.jobTitle
+                value: $model.aboutInfoModel.jobTitle
             )
         }
         if fields.contains(.company) {
             inputField(
                 for: AboutInfoField.company.localizedName(),
-                value: $inputFields.company
+                value: $model.aboutInfoModel.company
             )
         }
     }
@@ -174,38 +175,6 @@ struct AboutEditorView: View {
             comment: "Title of the button to save changes in the profile editing screen."
         )
     }
-}
-
-private class AboutInputFields: ObservableObject {
-    @Published var displayName: String = ""
-    @Published var aboutMe: String = ""
-    @Published var pronunciation: String = ""
-    @Published var pronouns: String = ""
-    @Published var location: String = ""
-    @Published var jobTitle: String = ""
-    @Published var company: String = ""
-
-    func fieldsToUpdate(from fields: AboutInfoField) -> FieldsToUpdate {
-        FieldsToUpdate(
-            displayName: fields.contains(.aboutMe) ? aboutMe : nil,
-            aboutMe: fields.contains(.aboutMe) ? aboutMe : nil,
-            pronunciation: fields.contains(.pronunciation) ? pronunciation : nil,
-            pronouns: fields.contains(.pronouns) ? pronouns : nil,
-            location: fields.contains(.location) ? location : nil,
-            jobTitle: fields.contains(.jobTitle) ? jobTitle : nil,
-            company: fields.contains(.company) ? company : nil
-        )
-    }
-}
-
-struct FieldsToUpdate {
-    var displayName: String? = nil
-    var aboutMe: String? = nil
-    var pronunciation: String? = nil
-    var pronouns: String? = nil
-    var location: String? = nil
-    var jobTitle: String? = nil
-    var company: String? = nil
 }
 
 extension View {
