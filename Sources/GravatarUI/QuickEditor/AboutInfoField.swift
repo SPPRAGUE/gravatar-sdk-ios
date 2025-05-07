@@ -50,10 +50,10 @@ public struct AboutInfoField: OptionSet, Sendable {
     ]
 
     var hasMultipleCategories: Bool {
-        (
-            (self.intersection(.personalFields).isEmpty ? 0 : 1) +
-                (self.intersection(.professionalFields).isEmpty ? 0 : 1)
-        ) > 1
+        [
+            !self.intersection(.personalFields).isEmpty,
+            !self.intersection(.professionalFields).isEmpty,
+        ].hasMoreThanOneTrue
     }
 
     func localizedName() -> String {
