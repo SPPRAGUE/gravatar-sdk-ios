@@ -1,4 +1,5 @@
 import UIKit
+import SwiftUI
 import GravatarUI
 
 final class DemoQuickEditorViewController: UIViewController {
@@ -17,6 +18,19 @@ final class DemoQuickEditorViewController: UIViewController {
         }
         set {
             UserDefaults.standard.setValue(newValue, forKey: "QETokenKey")
+        }
+    }
+
+    private var selectedAboutInfoFields: AboutInfoField  {
+        get {
+            if let rawValue = UserDefaults.standard.object(forKey: "demoSelectedAboutInfoFields") as? AboutInfoField.RawValue {
+                return AboutInfoField(rawValue: rawValue)
+            } else {
+                return AboutInfoField.all
+            }
+        }
+        set {
+            UserDefaults.standard.setValue(newValue.rawValue, forKey: "demoSelectedAboutInfoFields")
         }
     }
 
@@ -64,9 +78,67 @@ final class DemoQuickEditorViewController: UIViewController {
         return token
     }
 
-    var selectedLayout: QELayoutOptions = .horizontal {
+    var selectedLayout: AvatarPickerLayoutOptions = .horizontal {
         didSet {
             layoutButton.setTitle(selectedLayout.rawValue, for: .normal)
+        }
+    }
+
+    private var selectedScopeOption: QuickEditorScopeOption {
+        switch selectedScope {
+        case .avatarPicker:
+            .avatarPicker(.init(contentLayout: selectedLayout.contentLayout))
+        case .aboutEditor:
+            .aboutEditor(.init(
+                presentationStyle: selectedVerticalContentPresentationStyle,
+                fields: selectedAboutInfoFields
+            ))
+        case .avatarAndAboutEditor:
+            .avatarPickerAndAboutInfoEditor(
+                .init(
+                    contentLayout: selectedLayout.contentLayout,
+                    fields: selectedAboutInfoFields
+                )
+            )
+        }
+    }
+
+    private var selectedScope: QEScope = .avatarPicker {
+        didSet {
+            scopeButton.setTitle("Scope: \(selectedScope.rawValue)", for: .normal)
+
+            (avatarPickerOptionsViews + aboutEditorOptionsStackView + avatarAndAboutEditorOptionsStackView).forEach {
+                $0.isHiddenForAnimation = true
+            }
+
+            switch selectedScope {
+            case .avatarPicker:
+                avatarPickerOptionsViews.forEach { $0.isHiddenForAnimation = false }
+            case .aboutEditor:
+                aboutEditorOptionsStackView.forEach { $0.isHiddenForAnimation = false }
+            case .avatarAndAboutEditor:
+                avatarAndAboutEditorOptionsStackView.forEach {
+                    $0.isHiddenForAnimation = false
+                }
+            }
+        }
+    }
+
+    private var selectedVerticalContentPresentationStyle: VerticalContentPresentationStyle {
+        switch selectedVerticalContentPresentationStyleRepresentation {
+        case .expandableMedium:
+            .expandableMedium()
+        case .large:
+            .large
+        }
+    }
+
+    private var selectedVerticalContentPresentationStyleRepresentation: VerticalContentPresentationStyleRepresentation = .expandableMedium {
+        didSet {
+            aboutPresentationStyleButton.setTitle(
+                "Vertical Presentation Style: \(selectedVerticalContentPresentationStyleRepresentation.rawValue)",
+                for: .normal
+            )
         }
     }
 
@@ -92,14 +164,75 @@ final class DemoQuickEditorViewController: UIViewController {
         return button
     }()
 
+    lazy var scopeButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Scope: \(selectedScope.rawValue)", for: .normal)
+        button.addTarget(self, action: #selector(presentScopeOptions), for: .touchUpInside)
+        return button
+    }()
+
+    lazy var aboutPresentationStyleButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Vertical Presentation Style: \(selectedVerticalContentPresentationStyleRepresentation.rawValue)", for: .normal)
+        button.addTarget(self, action: #selector(presentVerticalPresentationStyleOptions), for: .touchUpInside)
+        return button
+    }()
+
+    lazy var aboutFieldsButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Select input fields", for: .normal)
+        button.addTarget(self, action: #selector(aboutFieldsButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
     @objc func presentLayoutOptions() {
         let sheet = UIAlertController(title: "Layout Options", message: nil, preferredStyle: .actionSheet)
-        QELayoutOptions.allCases.forEach { layout in
+        AvatarPickerLayoutOptions.allCases.forEach { layout in
             sheet.addAction(.init(title: layout.rawValue, style: .default) { _ in
                 self.selectedLayout = layout
             })
         }
         present(sheet, animated: true)
+    }
+
+    @objc func presentScopeOptions() {
+        let sheet = UIAlertController(title: "Scope Options", message: nil, preferredStyle: .actionSheet)
+        QEScope.allCases.forEach { scope in
+            sheet.addAction(.init(title: scope.rawValue, style: .default) { _ in
+                self.selectedScope = scope
+            })
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc func presentVerticalPresentationStyleOptions() {
+        let sheet = UIAlertController(title: "Vertical Presentation Styles", message: nil, preferredStyle: .actionSheet)
+        VerticalContentPresentationStyleRepresentation.allCases.forEach { style in
+            sheet.addAction(.init(title: style.rawValue, style: .default) { _ in
+                self.selectedVerticalContentPresentationStyleRepresentation = style
+            })
+        }
+        present(sheet, animated: true)
+    }
+
+    @objc func aboutFieldsButtonTapped() {
+        let aboutChecklistHostingController = UIHostingController(
+            rootView: AboutInfoChecklistView(
+                selectedFields: Binding(
+                    get: {
+                        self.selectedAboutInfoFields
+                    },
+                    set: { fields in
+                        self.selectedAboutInfoFields = fields
+                    }
+                )
+            )
+        )
+        aboutChecklistHostingController.sheetPresentationController?.detents = [.medium(), .large()]
+        present(aboutChecklistHostingController, animated: true)
     }
 
     lazy var colorSchemeLabel: UILabel = {
@@ -169,6 +302,22 @@ final class DemoQuickEditorViewController: UIViewController {
         return button
     }()
 
+    lazy var avatarPickerOptionsViews: [UIView] = [
+        imageEditorToggle,
+        layoutButton,
+    ]
+
+    lazy var aboutEditorOptionsStackView: [UIView] = [
+        aboutPresentationStyleButton,
+        aboutFieldsButton
+    ]
+
+    lazy var avatarAndAboutEditorOptionsStackView: [UIView] = [
+        imageEditorToggle,
+        layoutButton,
+        aboutFieldsButton
+    ]
+
     lazy var rootStackView: UIStackView = {
         let stackView = UIStackView(arrangedSubviews: [
             emailField,
@@ -176,9 +325,12 @@ final class DemoQuickEditorViewController: UIViewController {
             profileSummaryView,
             colorSchemeLabel,
             schemeToggle,
-            imageEditorToggle,
             prefersEphemeralSessionToggle,
+            scopeButton,
+            imageEditorToggle,
             layoutButton,
+            aboutPresentationStyleButton,
+            aboutFieldsButton,
             logoutButton,
             showButton
         ])
@@ -219,7 +371,7 @@ final class DemoQuickEditorViewController: UIViewController {
 
         let presenter = QuickEditorPresenter(
             email: Email(email),
-            scope: .avatarPicker(AvatarPickerConfiguration(contentLayout: selectedLayout.contentLayout)),
+            scopeOption: selectedScopeOption,
             configuration: .init(
                 interfaceStyle: customColorScheme,
                 customImageEditorProvider: imageEditorProvider
@@ -228,8 +380,15 @@ final class DemoQuickEditorViewController: UIViewController {
         )
         presenter.present(
             in: self,
-            onAvatarUpdated: { [weak self] in
-                self?.profileSummaryView.loadAvatar(with: .email(email), rating: .x, options: [.forceRefresh])
+            onUpdate: { [weak self] updateType in
+                switch updateType {
+                    case .avatarUpdate:
+                        self?.profileSummaryView.loadAvatar(with: .email(email), rating: .x, options: [.forceRefresh])
+                    case .aboutInfoUpdate:
+                        self?.fetchProfile(with: email)
+                    default:
+                        break
+                }
             },
             onDismiss: { [weak self] in
                 self?.updateLogoutButton()
@@ -363,5 +522,28 @@ class MyCustomImageEditorController: UIViewController, CustomImageEditorControll
             guard let self else { return }
             editingDidFinish(inputImage)
         }, for: .touchUpInside)
+    }
+}
+
+enum QEScope: String, CaseIterable, Hashable {
+    case avatarPicker = "Avatar Picker"
+    case aboutEditor = "About Editor"
+    case avatarAndAboutEditor = "Avatar & About Editor"
+}
+
+private enum VerticalContentPresentationStyleRepresentation: String, CaseIterable, Hashable {
+    case large = "Large"
+    case expandableMedium = "Expandable Medium"
+}
+
+private extension UIView {
+    var isHiddenForAnimation: Bool {
+        get {
+            return isHidden && alpha == 0
+        }
+        set {
+            self.alpha = newValue ? 0 : 1
+            self.isHidden = newValue
+        }
     }
 }

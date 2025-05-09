@@ -15,17 +15,43 @@ public class QuickEditorConfiguration {
     }
 }
 
-/// Configuration which will be applied to the avatar picker screen.
+/// Configuration which will be applied to the avatar picker.
 public struct AvatarPickerConfiguration: Sendable {
     let contentLayout: AvatarPickerContentLayout
 
-    public init(contentLayout: AvatarPickerContentLayout) {
+    public init(
+        contentLayout: AvatarPickerContentLayout
+    ) {
         self.contentLayout = contentLayout
     }
+}
 
-    static let `default` = AvatarPickerConfiguration(
-        contentLayout: .horizontal(presentationStyle: .intrinsicHeight)
-    )
+/// Configuration which will be applied to the About info editor.
+public struct AboutEditorConfiguration: Sendable {
+    let presentationStyle: VerticalContentPresentationStyle
+    let fields: AboutInfoField
+
+    public init(
+        presentationStyle: VerticalContentPresentationStyle = .expandableMedium(),
+        fields: AboutInfoField = AboutInfoField.all
+    ) {
+        self.presentationStyle = presentationStyle
+        self.fields = fields
+    }
+}
+
+/// Configuration which will be applied to the scope which allows switching between Avatar Picker and About info editor.
+public struct AvatarPickerAndAboutEditorConfiguration: Sendable {
+    let contentLayout: AvatarPickerContentLayout
+    let fields: AboutInfoField
+
+    public init(
+        contentLayout: AvatarPickerContentLayout = .horizontal(presentationStyle: .intrinsicHeight),
+        fields: AboutInfoField = AboutInfoField.all
+    ) {
+        self.contentLayout = contentLayout
+        self.fields = fields
+    }
 }
 
 extension AvatarPickerConfiguration {

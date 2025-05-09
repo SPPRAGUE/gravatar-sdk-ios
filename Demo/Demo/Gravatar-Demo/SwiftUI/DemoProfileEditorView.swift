@@ -5,7 +5,7 @@ struct DemoProfileEditorView: View {
 
     @AppStorage("pickerEmail") private var email: String = ""
     @AppStorage("pickerToken") private var token: String = ""
-    @AppStorage("pickerContentLayoutOptions") private var contentLayoutOptions: QELayoutOptions = .verticalLarge
+    @AppStorage("pickerContentLayoutOptions") private var contentLayoutOptions: AvatarPickerLayoutOptions = .verticalLarge
     // You can make this `true` by default to easily test the picker
     @State private var isPresentingPicker: Bool = false
     @State private var hasSession: Bool = false
@@ -17,6 +17,10 @@ struct DemoProfileEditorView: View {
     @State private var isSecure: Bool = true
     @State var enableCustomImageCropper: Bool = false
     @State var prefersEphemeralWebBrowserSession: Bool = false
+    @AppStorage("demoSelectedScope") private var scope: QEScope = .avatarPicker
+    @State private var verticalPresentationStyle: VerticalContentPresentationStyle = .expandableMedium()
+    @State private var isPresentingAboutFieldsSheet: Bool = false
+    @AppStorage("demoSelectedAboutInfoFields") var selectedAboutInfoFields: AboutInfoField = .all
 
     var body: some View {
         VStack(spacing: 20) {
@@ -42,59 +46,68 @@ struct DemoProfileEditorView: View {
                     }
                 }
                 Spacer().frame(height: 8)
-                ProfileViewRepresentable(configuration: $profileConfiguration, oneTimeAvatarForceRefresh: $oneTimeAvatarForceRefresh)
-                if #available(iOS 16.0, *) {
-                    QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
-                }
-                Divider()
-
-                QEColorSchemePickerRow(selectedScheme: $selectedScheme)
-                
-                Divider()
-                Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
+                ProfileViewRepresentable(
+                    configuration: $profileConfiguration,
+                    oneTimeAvatarForceRefresh: $oneTimeAvatarForceRefresh
+                )
                 Divider()
                 Toggle("Prefers ephemeral browser session", isOn: $prefersEphemeralWebBrowserSession)
+                Divider()
+                QEColorSchemePickerRow(selectedScheme: $selectedScheme)
+                Divider()
+                QEScopesPickerRow(scope: $scope)
+                Divider()
+                scopeOptions()
             }
             .padding(.horizontal)
                 Button("Open Profile Editor with OAuth flow") {
                     isPresentingPicker.toggle()
                 }
                 .modifier { view in
-                    if #available(iOS 16.0, *) {
+                    if #available(iOS 16, *) {
                         view
                             .gravatarQuickEditorSheet(
                                 isPresented: $isPresentingPicker,
                                 email: email,
                                 authToken: !token.isEmpty ? token : nil,
-                                scope: .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout)),
+                                scopeOption: finalScope,
                                 customImageEditor: customImageEditor(),
-                                avatarUpdatedHandler: {
-                                    self.oneTimeAvatarForceRefresh = true
+                                updateHandler: { updateType in
+                                    switch updateType {
+                                    case .avatarUpdate:
+                                        self.oneTimeAvatarForceRefresh = true
+                                    case .aboutInfoUpdate:
+                                        self.requestProfile()
+                                    default: break
+                                    }
+                                },
+                                onDismiss: {
+                                    updateHasSession(with: email)
+                                }
+                            ).environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
+                    } else {
+                        view
+                            .gravatarQuickEditorSheet(
+                                isPresented: $isPresentingPicker,
+                                email: email,
+                                authToken: !token.isEmpty ? token : nil,
+                                scopeOption: finalScopeiOS16,
+                                customImageEditor: customImageEditor(),
+                                updateHandler: { updateType in
+                                    switch updateType {
+                                    case .avatarUpdate:
+                                        self.oneTimeAvatarForceRefresh = true
+                                    case .aboutInfoUpdate:
+                                        break
+                                    default: break
+                                    }
                                 },
                                 onDismiss: {
                                     updateHasSession(with: email)
                                 }
                             ).environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
                     }
-                    else {
-                        view
-                            .gravatarQuickEditorSheet(
-                                isPresented: $isPresentingPicker,
-                                email: email,
-                                authToken: !token.isEmpty ? token : nil,
-                                scope: .avatarPicker,
-                                customImageEditor: customImageEditor(),
-                                avatarUpdatedHandler: {
-                                    self.oneTimeAvatarForceRefresh = true
-                                },
-                                onDismiss: {
-                                    updateHasSession(with: email)
-                                }
-                            )
-                            .environment(\.colorScheme, ColorScheme(selectedScheme) ?? .light)
-                    }
                 }
-
             if hasSession {
                 Button("Log out") {
                     oauthSession.deleteSession(with: .init(email))
@@ -118,6 +131,79 @@ struct DemoProfileEditorView: View {
                 await oauthSession.setPrefersEphemeralWebBrowserSession(prefersEphemeralWebBrowserSession)
             }
         }
+        .sheet(isPresented: $isPresentingAboutFieldsSheet) {
+            if #available(iOS 16.0, *) {
+                AboutInfoChecklistView(selectedFields: $selectedAboutInfoFields)
+                    .presentationDetents([.medium, .large])
+            } else {
+                AboutInfoChecklistView(selectedFields: $selectedAboutInfoFields)
+            }
+        }
+    }
+
+    var finalScope: QuickEditorScopeOption {
+        switch scope {
+        case .avatarPicker:
+            .avatarPicker(.init(contentLayout: contentLayoutOptions.contentLayout))
+        case .aboutEditor:
+            .aboutEditor(.init(
+                presentationStyle: verticalPresentationStyle,
+                fields: selectedAboutInfoFields)
+            )
+        case .avatarAndAboutEditor:
+            .avatarPickerAndAboutInfoEditor(
+                .init(
+                    contentLayout: contentLayoutOptions.contentLayout,
+                    fields: selectedAboutInfoFields
+                )
+            )
+        }
+    }
+
+    var finalScopeiOS16: QuickEditorScopeOptionOld {
+        switch scope {
+        case .avatarPicker:
+            .avatarPicker()
+        case .aboutEditor:
+            .aboutEditor()
+        case .avatarAndAboutEditor:
+            .avatarPicker()
+        }
+    }
+
+    @ViewBuilder
+    func scopeOptions() -> some View {
+        switch scope {
+        case .avatarPicker:
+            if #available(iOS 16.0, *) {
+                QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
+                Divider()
+            }
+            Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
+        case .aboutEditor:
+            if #available(iOS 16.0, *) {
+                QEVerticalStylePickerRow(verticalStyle: $verticalPresentationStyle)
+            }
+            aboutFieldsButton()
+        case .avatarAndAboutEditor:
+            if #available(iOS 16.0, *) {
+                QEContentLayoutPickerRow(contentLayoutOptions: $contentLayoutOptions)
+                Divider()
+            }
+            Toggle("Custom image cropper", isOn: $enableCustomImageCropper)
+            aboutFieldsButton()
+        }
+    }
+
+    func aboutFieldsButton() -> some View {
+        HStack(alignment: .center) {
+            Spacer()
+            Button("Select input fields") {
+                isPresentingAboutFieldsSheet = true
+            }
+            .buttonStyle(.bordered)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     func requestProfile() {

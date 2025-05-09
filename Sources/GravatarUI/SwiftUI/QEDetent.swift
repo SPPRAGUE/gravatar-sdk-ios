@@ -9,6 +9,33 @@ enum QEDetent {
     case height(CGFloat)
 
     static func detents(
+        for scopeOption: QuickEditorScopeOption,
+        intrinsicHeight: CGFloat,
+        verticalSizeClass: UserInterfaceSizeClass?
+    ) -> [QEDetent] {
+        switch scopeOption.scope {
+        case .avatarPicker(let config):
+            avatarPickerDetents(
+                for: config.contentLayout,
+                intrinsicHeight: intrinsicHeight,
+                verticalSizeClass: verticalSizeClass
+            )
+        case .aboutInfoEditor(let config):
+            aboutEditorDetents(
+                for: config.presentationStyle,
+                intrinsicHeight: intrinsicHeight,
+                verticalSizeClass: verticalSizeClass
+            )
+        case .avatarPickerAndAboutInfoEditor(let config):
+            avatarPickerDetents(
+                for: config.contentLayout,
+                intrinsicHeight: intrinsicHeight,
+                verticalSizeClass: verticalSizeClass
+            )
+        }
+    }
+
+    private static func avatarPickerDetents(
         for presentation: AvatarPickerContentLayout,
         intrinsicHeight: CGFloat,
         verticalSizeClass: UserInterfaceSizeClass?
@@ -29,6 +56,21 @@ enum QEDetent {
             case .expandableMedium(let initialFraction, _):
                 .init([.fraction(initialFraction), .large])
             }
+        }
+    }
+
+    private static func aboutEditorDetents(
+        for presentationStyle: VerticalContentPresentationStyle,
+        intrinsicHeight: CGFloat,
+        verticalSizeClass: UserInterfaceSizeClass?
+    )
+        -> [QEDetent]
+    {
+        switch presentationStyle {
+        case .large:
+            [.large]
+        case .expandableMedium(initialFraction: let initialFraction, _):
+            .init([.fraction(initialFraction), .large])
         }
     }
 

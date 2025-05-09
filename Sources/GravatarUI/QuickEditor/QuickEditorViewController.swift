@@ -7,10 +7,10 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
     private typealias CustomImageEditorProvider = ImageEditorBlock<CustomImageEditorControllerRepresentable>?
 
     let email: Email
-    let scope: QuickEditorScope
+    let scopeOption: QuickEditorScopeOption
     let token: String?
     let configuration: QuickEditorConfiguration
-    let onAvatarUpdated: (() -> Void)?
+    let updateHandler: ((QuickEditorUpdateType) -> Void)?
     let onDismiss: (() -> Void)?
 
     private lazy var isPresented: Binding<Bool> = Binding {
@@ -25,12 +25,6 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
     var verticalSizeClass: UserInterfaceSizeClass?
     var sheetHeight: CGFloat = QEModalPresentationConstants.bottomSheetEstimatedHeight
-    var contentLayoutWithPresentation: AvatarPickerContentLayout {
-        switch scope {
-        case .avatarPicker(let config):
-            config.contentLayout
-        }
-    }
 
     private lazy var rootView: QuickEditor = {
         let provider: CustomImageEditorProvider = if let customProvider = configuration.customImageEditorProvider {
@@ -47,12 +41,11 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
         return QuickEditor(
             email: email,
-            scope: scope.scopeType,
+            scopeOption: scopeOption,
             token: token,
             isPresented: isPresented,
             customImageEditor: provider,
-            contentLayoutProvider: contentLayoutWithPresentation,
-            avatarUpdatedHandler: onAvatarUpdated
+            updateHandler: updateHandler
         )
     }()
 
@@ -74,18 +67,18 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
     init(
         email: Email,
-        scope: QuickEditorScope,
+        scopeOption: QuickEditorScopeOption,
         configuration: QuickEditorConfiguration? = nil,
         token: String? = nil,
-        onAvatarUpdated: (() -> Void)? = nil,
+        onUpdate: ((QuickEditorUpdateType) -> Void)? = nil,
         onDismiss: (() -> Void)? = nil
     ) {
         self.email = email
-        self.scope = scope
+        self.scopeOption = scopeOption
         self.configuration = configuration ?? .default
         self.token = token
         self.onDismiss = onDismiss
-        self.onAvatarUpdated = onAvatarUpdated
+        self.updateHandler = onUpdate
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -122,12 +115,12 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
         if let sheet = sheetPresentationController {
             sheet.animateChanges {
                 sheet.detents = QEDetent.detents(
-                    for: contentLayoutWithPresentation,
+                    for: scopeOption,
                     intrinsicHeight: sheetHeight,
                     verticalSizeClass: verticalSizeClass
                 ).map()
             }
-            sheet.prefersScrollingExpandsWhenScrolledToEdge = !contentLayoutWithPresentation.prioritizeScrollOverResize
+            sheet.prefersScrollingExpandsWhenScrolledToEdge = !shouldPrioritizeScrollOverResize
         }
     }
 }
@@ -175,7 +168,7 @@ private class InnerHeightUIHostingController: UIHostingController<AnyView> {
 /// A struct responsible for presenting the Quick Editor from a UIKit context.
 public struct QuickEditorPresenter {
     let email: Email
-    let scope: QuickEditorScope
+    let scopeOption: QuickEditorScopeOption
     let configuration: QuickEditorConfiguration
     let token: String?
 
@@ -185,7 +178,8 @@ public struct QuickEditorPresenter {
     ///   - scope: The scope in which the editor is used.
     ///   - configuration: Optional editor configuration. Defaults to `.default`.
     ///   - token: Optional authorization token. If none is provided, an OAuth screen will be presented for the user to authorise this session. See
-    /// <doc:GravatarOAuth> for more info.
+    /// <doc:GravatarOAuth> for more
+    @available(*, deprecated, renamed: "init(email:scopeOption:configuration:token:)", message: "The new scope parameter is of type `QuickEditorScopeOption`")
     public init(
         email: Email,
         scope: QuickEditorScope,
@@ -193,7 +187,30 @@ public struct QuickEditorPresenter {
         token: String? = nil
     ) {
         self.email = email
-        self.scope = scope
+        if case .avatarPicker(let config) = scope {
+            self.scopeOption = .avatarPicker(.init(contentLayout: config.contentLayout))
+        } else {
+            self.scopeOption = .avatarPicker(.horizontalInstrinsicHeight)
+        }
+        self.configuration = configuration ?? .default
+        self.token = token
+    }
+
+    /// Initializes the `QuickEditorPresenter` with the required parameters.
+    /// - Parameters:
+    ///   - email: User's email.
+    ///   - scopeOption: The scope in which the editor is used.
+    ///   - configuration: Optional editor configuration. Defaults to `.default`.
+    ///   - token: Optional authorization token. If none is provided, an OAuth screen will be presented for the user to authorise this session. See
+    /// <doc:GravatarOAuth> for more info.
+    public init(
+        email: Email,
+        scopeOption: QuickEditorScopeOption,
+        configuration: QuickEditorConfiguration? = nil,
+        token: String? = nil
+    ) {
+        self.email = email
+        self.scopeOption = scopeOption
         self.configuration = configuration ?? .default
         self.token = token
     }
@@ -206,6 +223,7 @@ public struct QuickEditorPresenter {
     ///   - onAvatarUpdated: An optional closure triggered when the avatar is updated.
     ///   - onDismiss: An optional closure triggered when the editor is dismissed.
     @MainActor
+    @available(*, deprecated, renamed: "init(in:animated:completion:onUpdate:onDismiss:)")
     public func present(
         in parent: UIViewController,
         animated: Bool = true,
@@ -215,10 +233,40 @@ public struct QuickEditorPresenter {
     ) {
         let quickEditor = QuickEditorViewController(
             email: email,
-            scope: scope,
+            scopeOption: scopeOption,
             configuration: configuration,
             token: token,
-            onAvatarUpdated: onAvatarUpdated,
+            onUpdate: { _ in
+                onAvatarUpdated?()
+            },
+            onDismiss: onDismiss
+        )
+
+        quickEditor.overrideUserInterfaceStyle = configuration.interfaceStyle
+        parent.present(quickEditor, animated: animated, completion: completion)
+    }
+
+    /// Presents the Quick Editor
+    /// - Parameters:
+    ///   - parent: The UIViewController from which to present the Quick Editor.
+    ///   - animated: Whether the presentation should be animated. Defaults to `true`.
+    ///   - completion: An optional closure called after the presentation finishes.
+    ///   - onUpdate: An optional closure triggered when the user profile info is updated.
+    ///   - onDismiss: An optional closure triggered when the editor is dismissed.
+    @MainActor
+    public func present(
+        in parent: UIViewController,
+        animated: Bool = true,
+        completion: (() -> Void)? = nil,
+        onUpdate: ((QuickEditorUpdateType) -> Void)? = nil,
+        onDismiss: (() -> Void)? = nil
+    ) {
+        let quickEditor = QuickEditorViewController(
+            email: email,
+            scopeOption: scopeOption,
+            configuration: configuration,
+            token: token,
+            onUpdate: onUpdate,
             onDismiss: onDismiss
         )
 

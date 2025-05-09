@@ -12,7 +12,19 @@ public enum VerticalContentPresentationStyle: Sendable, Equatable {
     /// - initialFraction: The fractional height of the sheet in its initial state.
     /// - prioritizeScrollOverResize: A behavior that prioritizes scrolling the content of the sheet when
     /// swiping, rather than resizing it. Note that this parameter is effective only for iOS 16.4 +.
-    case expandableMedium(initialFraction: CGFloat = VerticalContentPresentationStyle.expandableMediumInitialFraction, prioritizeScrollOverResize: Bool = false)
+    case expandableMedium(
+        initialFraction: CGFloat = VerticalContentPresentationStyle.expandableMediumInitialFraction,
+        prioritizeScrollOverResize: Bool = false
+    )
+
+    var prioritizeScrollOverResize: Bool {
+        switch self {
+        case .expandableMedium(_, let prioritizeScrollOverResize):
+            prioritizeScrollOverResize
+        default:
+            false
+        }
+    }
 }
 
 /// Presentation styles supported for the horizontially scrolling content.
@@ -48,8 +60,8 @@ public enum AvatarPickerContentLayout: AvatarPickerContentLayoutProviding, Equat
 
     var prioritizeScrollOverResize: Bool {
         switch self {
-        case .vertical(.expandableMedium(_, let prioritizeScrollOverResize)):
-            prioritizeScrollOverResize
+        case .vertical(let presentationStyle):
+            presentationStyle.prioritizeScrollOverResize
         default:
             false
         }

@@ -45,7 +45,7 @@ struct AvatarPickerView<ImageEditor: ImageEditorView>: View {
     fileprivate init(
         avatarImageModels: [AvatarImageModel],
         selectedImageID: String? = nil,
-        profileModel: ProfileSummaryModel? = nil,
+        profileModel: Profile? = nil,
         isPresented: Binding<Bool>,
         contentLayoutProvider: AvatarPickerContentLayoutProviding = AvatarPickerContentLayoutType.vertical,
         customImageEditor: ImageEditorBlock<ImageEditor>? = nil as NoCustomEditorBlock?,
@@ -67,11 +67,7 @@ struct AvatarPickerView<ImageEditor: ImageEditorView>: View {
     public var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                EmailText(email: model.email)
-                    .accumulateIntrinsicHeight()
                 noSelectedAvatarWarning()
-                    .accumulateIntrinsicHeight()
-                profileView()
                     .accumulateIntrinsicHeight()
                 ScrollView {
                     VStack(spacing: 0) {
@@ -141,14 +137,6 @@ struct AvatarPickerView<ImageEditor: ImageEditorView>: View {
                 .padding(.horizontal, Constants.horizontalPadding * 2)
         }
         .preference(key: VerticalSizeClassPreferenceKey.self, value: verticalSizeClass)
-        .gravatarNavigation(
-            actionButtonDisabled: model.profileModel?.profileURL == nil,
-            onDoneButtonPressed: {
-                isPresented = false
-            },
-            preferenceKey: InnerHeightPreferenceKey.self
-        )
-        .presentSafariView(identifiableURL: $safariURL, colorScheme: colorScheme)
         .onChange(of: model.backendSelectedAvatarURL) { _ in
             notifyAvatarSelection()
         }
@@ -452,20 +440,6 @@ struct AvatarPickerView<ImageEditor: ImageEditorView>: View {
             .padding(.bottom, .DS.Padding.single)
         }
     }
-
-    @ViewBuilder
-    private func profileView() -> some View {
-        AvatarPickerProfileViewWrapper(
-            avatarID: $model.avatarIdentifier,
-            forceRefreshAvatar: $model.forceRefreshAvatar,
-            model: $model.profileModel,
-            isLoading: $model.isProfileLoading,
-            safariURL: $safariURL
-        )
-        .padding(.top, AvatarPicker.Constants.profileViewTopSpacing / 2)
-        .padding(.bottom, AvatarPicker.Constants.vStackVerticalSpacing)
-        .padding(.horizontal, AvatarPicker.Constants.horizontalPadding)
-    }
 }
 
 // MARK: - Localized Strings
@@ -473,7 +447,7 @@ struct AvatarPickerView<ImageEditor: ImageEditorView>: View {
 enum AvatarPicker {
     enum Constants {
         static let horizontalPadding: CGFloat = .DS.Padding.double
-        static let lightModeShadowColor = Color(uiColor: UIColor.rgba(25, 30, 35, alpha: 0.2))
+        static let lightModeShadowColor = Color(uiColor: UIColor.rgba(25, 30, 35, alpha: 0.15))
         static let vStackVerticalSpacing: CGFloat = .DS.Padding.medium
         static let profileViewTopSpacing: CGFloat = .DS.Padding.double
     }
@@ -606,40 +580,6 @@ enum AvatarPicker {
 // MARK: - Previews
 
 #Preview("Existing elements") {
-    struct PreviewModel: ProfileSummaryModel {
-        var avatarIdentifier: Gravatar.AvatarIdentifier? {
-            .email("some@email.com")
-        }
-
-        var displayName: String {
-            "Shelly Kimbrough"
-        }
-
-        var jobTitle: String {
-            "Payroll clerk"
-        }
-
-        var pronunciation: String {
-            "shell-ee"
-        }
-
-        var pronouns: String {
-            "she/her"
-        }
-
-        var location: String {
-            "San Antonio, TX"
-        }
-
-        var profileURL: URL? {
-            URL(string: "https://gravatar.com")
-        }
-
-        var profileEditURL: URL? {
-            URL(string: "https://gravatar.com")
-        }
-    }
-
     let avatarImageModels: [AvatarImageModel] = [
         .preview_init(id: "0", source: .local(image: UIImage()), state: .loading),
         .preview_init(id: "1", source: .remote(url: "https://gravatar.com/userimage/110207384/aa5f129a2ec75162cee9a1f0c472356a.jpeg?size=256")),
@@ -652,12 +592,11 @@ enum AvatarPicker {
         .preview_init(id: "8", source: .local(image: UIImage()), state: .error(supportsRetry: false, errorMessage: "Something went wrong.")),
     ]
     let selectedImageID = "5"
-    let profileModel = PreviewModel()
 
-    return AvatarPickerView<NoCustomEditor>(
+    AvatarPickerView<NoCustomEditor>(
         avatarImageModels: avatarImageModels,
         selectedImageID: selectedImageID,
-        profileModel: profileModel,
+        profileModel: nil,
         isPresented: .constant(true),
         contentLayoutProvider: AvatarPickerContentLayoutType.horizontal
     )
