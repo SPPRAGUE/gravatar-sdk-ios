@@ -56,7 +56,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
         rootView: rootView,
         onHeightChange: { [weak self] newHeight in
             guard let self else { return }
-            if self.shouldAcceptHeight(newHeight) {
+            if self.shouldAcceptHeight(newHeight, multipleEditorMode: nil) { // TODO: fix
                 self.sheetHeight = newHeight
             }
             self.updateDetents()
@@ -120,7 +120,8 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
                 sheet.detents = QEDetent.detents(
                     for: scopeOption,
                     intrinsicHeight: sheetHeight,
-                    verticalSizeClass: verticalSizeClass
+                    verticalSizeClass: verticalSizeClass,
+                    multipleEditorMode: .aboutEditor // TODO: fix
                 ).map()
             }
             sheet.prefersScrollingExpandsWhenScrolledToEdge = !shouldPrioritizeScrollOverResize
