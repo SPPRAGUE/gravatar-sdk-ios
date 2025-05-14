@@ -42,12 +42,12 @@ public struct QuickEditorScopeOption {
         )
     }
 
-    var isAvatarPickerAndAboutInfoEditor: Bool {
+    var initialMultipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Mode? {
         switch scope {
-        case .avatarPickerAndAboutInfoEditor:
-            true
+        case .avatarPickerAndAboutInfoEditor(let avatarPickerAndAboutEditorConfiguration):
+            avatarPickerAndAboutEditorConfiguration.initialMode
         default:
-            false
+            nil
         }
     }
 }
