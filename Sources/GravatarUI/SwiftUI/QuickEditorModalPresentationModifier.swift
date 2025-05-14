@@ -25,6 +25,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
     @State private var prioritizeScrollOverResize: Bool = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var dismissAttempt: Bool = false
+    @State private var multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Mode?
 
     let onDismiss: (() -> Void)?
     let modalView: ModalView
@@ -36,10 +37,12 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
         self.onDismiss = onDismiss
         self.modalView = modalView
         self.scopeOption = scopeOption
+        self.multipleEditorMode = scopeOption.initialMultipleEditorMode
         self.presentationDetents = QEDetent.detents(
             for: scopeOption,
             intrinsicHeight: Constants.bottomSheetEstimatedHeight,
-            verticalSizeClass: nil
+            verticalSizeClass: nil,
+            multipleEditorMode: scopeOption.initialMultipleEditorMode
         ).map()
     }
 
@@ -54,7 +57,8 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                     self.presentationDetents = QEDetent.detents(
                         for: scopeOption,
                         intrinsicHeight: max(sheetHeight, Constants.bottomSheetEstimatedHeight),
-                        verticalSizeClass: verticalSizeClass
+                        verticalSizeClass: verticalSizeClass,
+                        multipleEditorMode: multipleEditorMode
                     ).map()
                 }
                 isPresentedInner = newValue
@@ -68,7 +72,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                     .frame(minHeight: Constants.bottomSheetMinHeight)
                     .onPreferenceChange(InnerHeightPreferenceKey.self) { newHeight in
                         Task { @MainActor in
-                            if shouldAcceptHeight(newHeight) {
+                            if shouldAcceptHeight(newHeight, multipleEditorMode: multipleEditorMode) {
                                 sheetHeight = newHeight
                             }
                             updateDetents()
@@ -78,6 +82,12 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                         Task { @MainActor in
                             guard newSizeClass != nil else { return }
                             self.verticalSizeClass = newSizeClass
+                            updateDetents()
+                        }
+                    }
+                    .onPreferenceChange(MultipleEditModePreferenceKey.self) { newValue in
+                        Task { @MainActor in
+                            self.multipleEditorMode = newValue
                             updateDetents()
                         }
                     }
@@ -96,7 +106,8 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
         self.presentationDetents = QEDetent.detents(
             for: scopeOption,
             intrinsicHeight: sheetHeight,
-            verticalSizeClass: verticalSizeClass
+            verticalSizeClass: verticalSizeClass,
+            multipleEditorMode: multipleEditorMode
         ).map()
         self.prioritizeScrollOverResize = shouldPrioritizeScrollOverResize
     }
@@ -114,8 +125,8 @@ protocol ModalPresentationWithIntrinsicSize {
 }
 
 extension ModalPresentationWithIntrinsicSize {
-    func shouldAcceptHeight(_ newHeight: CGFloat) -> Bool {
-        newHeight > QEModalPresentationConstants.bottomSheetMinHeight && shouldUseIntrinsicSize
+    func shouldAcceptHeight(_ newHeight: CGFloat, multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Mode?) -> Bool {
+        newHeight > QEModalPresentationConstants.bottomSheetMinHeight && shouldUseIntrinsicSize // && multipleEditorMode != .aboutEditor
     }
 
     var shouldUseIntrinsicSize: Bool {
