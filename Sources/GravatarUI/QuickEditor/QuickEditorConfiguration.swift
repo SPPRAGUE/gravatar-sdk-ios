@@ -42,15 +42,23 @@ public struct AboutEditorConfiguration: Sendable {
 
 /// Configuration which will be applied to the scope which allows switching between Avatar Picker and About info editor.
 public struct AvatarPickerAndAboutEditorConfiguration: Sendable {
+    public enum Mode: Sendable {
+        case avatarPicker
+        case aboutEditor
+    }
+
     let contentLayout: AvatarPickerContentLayout
     let fields: AboutInfoField
+    let initialMode: Mode
 
     public init(
         contentLayout: AvatarPickerContentLayout = .horizontal(presentationStyle: .intrinsicHeight),
-        fields: AboutInfoField = AboutInfoField.all
+        fields: AboutInfoField = AboutInfoField.all,
+        initialMode: Mode = .avatarPicker
     ) {
         self.contentLayout = contentLayout
         self.fields = fields
+        self.initialMode = initialMode
     }
 }
 
