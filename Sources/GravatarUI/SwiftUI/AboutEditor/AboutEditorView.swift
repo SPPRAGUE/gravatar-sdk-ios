@@ -5,24 +5,36 @@ struct AboutEditorView: View {
         static let primaryFont: Font = .subheadline
         static let sectionHeaderFont: Font = .subheadline.weight(.semibold)
         static let footerFont: Font = .footnote
+        static let horizontalPadding: CGFloat = .DS.Padding.double
     }
 
     @State private var isSaving: Bool = false
+    @Binding var isPresented: Bool
     @ObservedObject var model: AvatarPickerViewModel
     let fields: AboutInfoField
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
+
+    var tokenErrorHandler: (() -> Void)?
     var aboutUpdateHandler: (() -> Void)?
 
     var body: some View {
-        if model.isProfileLoading {
-            LoadingIndicatorView()
-                .accumulateIntrinsicHeight()
-            // Do not accumulate intrinsic size on a Spacer() since its
-            // height is flexible.
-            Spacer()
-        } else {
-            content()
+        ZStack {
+            VStack {
+                if model.isProfileLoading {
+                    LoadingIndicatorView()
+                        .accumulateIntrinsicHeight()
+                    // Do not accumulate intrinsic size on a Spacer() since its
+                    // height is flexible.
+                    Spacer()
+                } else if let error = model.profileResult?.error() {
+                    errorView(with: error)
+                } else {
+                    content()
+                }
+            }
+            ToastContainerView(toastManager: model.toastManager)
+                .padding(.horizontal, Constants.horizontalPadding * 2)
         }
     }
 
@@ -180,6 +192,16 @@ struct AboutEditorView: View {
         .frame(maxWidth: .infinity)
     }
 
+    @ViewBuilder
+    func errorView(with error: any Error) -> some View {
+        ScopeLoadingErrorView(
+            error: error,
+            isPresented: $isPresented,
+            model: model, tokenErrorHandler: tokenErrorHandler
+        )
+        Spacer()
+    }
+
     private enum Localized {
         static let aboutMeFooterText = SDKLocalizedString(
             "Profile.AboutInfoField.aboutMe.footer",
@@ -220,13 +242,13 @@ extension View {
 }
 
 #Preview {
-    AboutEditorView(model: .init(avatarImageModels: []), fields: .all)
+    AboutEditorView(isPresented: .constant(true), model: .init(avatarImageModels: []), fields: .all)
 }
 
 #Preview("professional") {
-    AboutEditorView(model: .init(avatarImageModels: []), fields: .professionalFields)
+    AboutEditorView(isPresented: .constant(true), model: .init(avatarImageModels: []), fields: .professionalFields)
 }
 
 #Preview("personal") {
-    AboutEditorView(model: .init(avatarImageModels: []), fields: .personalFields)
+    AboutEditorView(isPresented: .constant(true), model: .init(avatarImageModels: []), fields: .personalFields)
 }

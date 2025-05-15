@@ -147,6 +147,9 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
             }
         }
         .preference(key: MultipleEditModePreferenceKey.self, value: multipleEditorMode)
+        .task {
+            model.refresh(modelToRefresh: .all)
+        }
     }
 
     func avatarPickerView(config: AvatarPickerConfiguration) -> some View {
@@ -168,8 +171,13 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
     @ViewBuilder
     func aboutEditorView(fields: AboutInfoField) -> some View {
         AboutEditorView(
+            isPresented: $isPresented,
             model: model,
             fields: fields,
+            tokenErrorHandler: externalToken != nil ? nil : {
+                oauthSession.markSessionAsExpired(with: email)
+                performAuthentication()
+            },
             aboutUpdateHandler: {
                 updateHandler?(.aboutInfoUpdate)
             }
