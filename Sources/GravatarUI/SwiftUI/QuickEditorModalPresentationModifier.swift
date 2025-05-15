@@ -72,7 +72,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                     .frame(minHeight: Constants.bottomSheetMinHeight)
                     .onPreferenceChange(InnerHeightPreferenceKey.self) { newHeight in
                         Task { @MainActor in
-                            if shouldAcceptHeight(newHeight, multipleEditorMode: multipleEditorMode) {
+                            if shouldAcceptHeight(newHeight) {
                                 sheetHeight = newHeight
                             }
                             updateDetents()
@@ -125,8 +125,8 @@ protocol ModalPresentationWithIntrinsicSize {
 }
 
 extension ModalPresentationWithIntrinsicSize {
-    func shouldAcceptHeight(_ newHeight: CGFloat, multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Mode?) -> Bool {
-        newHeight > QEModalPresentationConstants.bottomSheetMinHeight && shouldUseIntrinsicSize // && multipleEditorMode != .aboutEditor
+    func shouldAcceptHeight(_ newHeight: CGFloat) -> Bool {
+        newHeight > QEModalPresentationConstants.bottomSheetMinHeight && shouldUseIntrinsicSize
     }
 
     var shouldUseIntrinsicSize: Bool {
