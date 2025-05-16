@@ -29,7 +29,6 @@ enum QEDetent {
             )
         case .avatarPickerAndAboutInfoEditor(let config):
             avatarAndAboutEditorDetents(
-                scopeOption: scopeOption,
                 presentation: config.contentLayout,
                 intrinsicHeight: intrinsicHeight,
                 verticalSizeClass: verticalSizeClass,
@@ -39,7 +38,6 @@ enum QEDetent {
     }
 
     private static func avatarAndAboutEditorDetents(
-        scopeOption: QuickEditorScopeOption,
         presentation: AvatarPickerContentLayout,
         intrinsicHeight: CGFloat,
         verticalSizeClass: UserInterfaceSizeClass?,
@@ -51,7 +49,7 @@ enum QEDetent {
                 // in landscape mode where the device height is small we display the full size sheet(which is
                 // also the default value of the detent).
                 .init([.large])
-            } else if case .avatarPickerAndAboutInfoEditor = scopeOption.scope {
+            } else {
                 switch currentPage {
                 case .avatarPicker:
                     .init([.height(intrinsicHeight)])
@@ -62,8 +60,6 @@ enum QEDetent {
                         .init([.height(intrinsicHeight)])
                     }
                 }
-            } else {
-                .init([.height(intrinsicHeight)])
             }
         case .vertical(let presentationStyle):
             switch presentationStyle {
