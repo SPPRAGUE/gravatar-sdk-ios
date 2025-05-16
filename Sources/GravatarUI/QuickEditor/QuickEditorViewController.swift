@@ -27,7 +27,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
     var verticalSizeClass: UserInterfaceSizeClass?
     var sheetHeight: CGFloat = QEModalPresentationConstants.bottomSheetEstimatedHeight
-    var multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Mode?
+    var multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Page?
 
     private lazy var rootView: QuickEditor = {
         let provider: CustomImageEditorProvider = if let customProvider = configuration.customImageEditorProvider {

@@ -42,24 +42,34 @@ public struct AboutEditorConfiguration: Sendable {
 
 /// Configuration which will be applied to the scope which allows switching between Avatar Picker and About info editor.
 public struct AvatarPickerAndAboutEditorConfiguration: Sendable {
-    public enum Mode: Sendable {
+    public enum Page: Sendable {
         case avatarPicker
         case aboutEditor
     }
 
     let contentLayout: AvatarPickerContentLayout
     let fields: AboutInfoField
-    let initialMode: Mode
+    let initialPage: Page
 
     public init(
         contentLayout: AvatarPickerContentLayout = .horizontal(presentationStyle: .intrinsicHeight),
         fields: AboutInfoField = AboutInfoField.all,
-        initialMode: Mode = .avatarPicker
+        initialPage: Page = .avatarPicker
     ) {
         self.contentLayout = contentLayout
         self.fields = fields
-        self.initialMode = initialMode
+        self.initialPage = initialPage
     }
+}
+
+/// Represents all the pages that the Quick Editor can present.
+///
+/// While each configuration exposes only the relevant subset of pages publicly,
+/// this enum is used internally to represent all possible Quick Editor pages, and keep track of the current one.
+/// (Keep internal)
+enum QuickEditorPage: Sendable {
+    case avatarPicker
+    case aboutEditor
 }
 
 extension AvatarPickerConfiguration {
