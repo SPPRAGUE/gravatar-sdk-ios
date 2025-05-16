@@ -245,14 +245,14 @@ class AvatarPickerViewModel: ObservableObject {
         }
     }
 
-    func saveAboutInfo(for fields: AboutInfoField) async -> Bool {
-        guard let authToken else { return false }
+    func saveAboutInfo(for fields: AboutInfoField) async -> Profile? {
+        guard let authToken else { return nil }
         do {
             let request = aboutInfoModel.updateProfileRequest(for: fields)
             let updatedProfile = try await profileService.updateProfile(with: request, token: authToken)
             self.profileResult = .success(updatedProfile)
             toastManager.showToast(Localized.profileUpdateSuccess, type: .info)
-            return true
+            return updatedProfile
         } catch APIError.responseError(let .invalidHTTPStatusCode(response, errorPayload))
             where response.statusCode == HTTPStatus.unauthorized.rawValue
         {
@@ -262,10 +262,10 @@ class AvatarPickerViewModel: ObservableObject {
                     errorPayload: errorPayload
                 )
             ))
-            return false
+            return nil
         } catch {
             showToast(for: error, fallbackText: Localized.profileUpdateFail)
-            return false
+            return nil
         }
     }
 
