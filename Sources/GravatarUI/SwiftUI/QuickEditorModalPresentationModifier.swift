@@ -25,7 +25,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
     @State private var prioritizeScrollOverResize: Bool = false
     @Environment(\.colorScheme) var colorScheme: ColorScheme
     @State private var dismissAttempt: Bool = false
-    @State private var multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Page?
+    @State private var currentPage: QuickEditorPage
 
     let onDismiss: (() -> Void)?
     let modalView: ModalView
@@ -37,12 +37,12 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
         self.onDismiss = onDismiss
         self.modalView = modalView
         self.scopeOption = scopeOption
-        self.multipleEditorMode = scopeOption.initialMultipleEditorMode
+        self.currentPage = scopeOption.initialPage
         self.presentationDetents = QEDetent.detents(
             for: scopeOption,
             intrinsicHeight: Constants.bottomSheetEstimatedHeight,
             verticalSizeClass: nil,
-            multipleEditorMode: scopeOption.initialMultipleEditorMode
+            currentPage: scopeOption.initialPage
         ).map()
     }
 
@@ -58,7 +58,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                         for: scopeOption,
                         intrinsicHeight: max(sheetHeight, Constants.bottomSheetEstimatedHeight),
                         verticalSizeClass: verticalSizeClass,
-                        multipleEditorMode: multipleEditorMode
+                        currentPage: currentPage
                     ).map()
                 }
                 isPresentedInner = newValue
@@ -85,9 +85,9 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
                             updateDetents()
                         }
                     }
-                    .onPreferenceChange(MultipleEditorModePreferenceKey.self) { newValue in
+                    .onPreferenceChange(QuikcEditorCurrentPagePreferenceKey.self) { newValue in
                         Task { @MainActor in
-                            self.multipleEditorMode = newValue
+                            self.currentPage = newValue
                             updateDetents()
                         }
                     }
@@ -107,7 +107,7 @@ struct QuickEditorModalPresentationModifier<ModalView: View>: ViewModifier, Moda
             for: scopeOption,
             intrinsicHeight: sheetHeight,
             verticalSizeClass: verticalSizeClass,
-            multipleEditorMode: multipleEditorMode
+            currentPage: currentPage
         ).map()
         self.prioritizeScrollOverResize = shouldPrioritizeScrollOverResize
     }

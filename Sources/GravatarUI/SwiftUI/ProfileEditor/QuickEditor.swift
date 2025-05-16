@@ -143,7 +143,7 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
                 unsavedChangesAlertPresentationModel.presentAlert = true
             }
         }
-        .preference(key: MultipleEditorModePreferenceKey.self, value: multipleEditorMode)
+        .preference(key: QuikcEditorCurrentPagePreferenceKey.self, value: currentPage)
         .task {
             model.refresh(modelToRefresh: .all)
         }
@@ -235,7 +235,7 @@ struct QuickEditor<ImageEditor: ImageEditorView>: View {
     }
 
     var avatarProfileViewButtonMode: AvatarPickerProfileViewWrapper.ButtonsMode? {
-        guard case .avatarPickerAndAboutInfoEditor(_) = scopeOption.scope else {
+        guard case .avatarPickerAndAboutInfoEditor = scopeOption.scope else {
             return nil
         }
         // We show the opposite button on the card, so the button mode corresponds to the opposite current page being displayed

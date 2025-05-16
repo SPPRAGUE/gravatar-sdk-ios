@@ -27,7 +27,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
 
     var verticalSizeClass: UserInterfaceSizeClass?
     var sheetHeight: CGFloat = QEModalPresentationConstants.bottomSheetEstimatedHeight
-    var multipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Page?
+    var currentPage: QuickEditorPage
 
     private lazy var rootView: QuickEditor = {
         let provider: CustomImageEditorProvider = if let customProvider = configuration.customImageEditorProvider {
@@ -67,9 +67,9 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
             self.verticalSizeClass = verticalSizeClass
             self.updateDetents()
         },
-        onMultipleEditorModeChange: { [weak self] newValue in
+        onPageChange: { [weak self] newValue in
             guard let self else { return }
-            self.multipleEditorMode = newValue
+            self.currentPage = newValue
             self.updateDetents()
         }
     )
@@ -88,7 +88,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
         self.token = token
         self.onDismiss = onDismiss
         self.updateHandler = onUpdate
-        self.multipleEditorMode = scopeOption.initialMultipleEditorMode
+        self.currentPage = scopeOption.initialPage
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -128,7 +128,7 @@ final class QuickEditorViewController: UIViewController, ModalPresentationWithIn
                     for: scopeOption,
                     intrinsicHeight: sheetHeight,
                     verticalSizeClass: verticalSizeClass,
-                    multipleEditorMode: multipleEditorMode
+                    currentPage: currentPage
                 ).map()
             }
             sheet.prefersScrollingExpandsWhenScrolledToEdge = !shouldPrioritizeScrollOverResize
@@ -150,17 +150,17 @@ extension QuickEditorViewController: UISheetPresentationControllerDelegate {
 private class InnerHeightUIHostingController: UIHostingController<AnyView> {
     let onHeightChange: (CGFloat) -> Void
     let onVerticalSizeClassChange: (UserInterfaceSizeClass?) -> Void
-    let onMultipleEditorModeChange: (AvatarPickerAndAboutEditorConfiguration.Page?) -> Void
+    let onPageChange: (QuickEditorPage) -> Void
 
     init(
         rootView: some View,
         onHeightChange: @escaping (CGFloat) -> Void,
         onVerticalSizeClassChange: @escaping (UserInterfaceSizeClass?) -> Void,
-        onMultipleEditorModeChange: @escaping (AvatarPickerAndAboutEditorConfiguration.Page?) -> Void
+        onPageChange: @escaping (QuickEditorPage) -> Void
     ) {
         self.onHeightChange = onHeightChange
         self.onVerticalSizeClassChange = onVerticalSizeClassChange
-        self.onMultipleEditorModeChange = onMultipleEditorModeChange
+        self.onPageChange = onPageChange
         weak var weakSelf: InnerHeightUIHostingController?
         super.init(rootView: AnyView(
             rootView
@@ -174,9 +174,9 @@ private class InnerHeightUIHostingController: UIHostingController<AnyView> {
                         weakSelf?._innerVerticalSizeClass = newSizeClass
                     }
                 }
-                .onPreferenceChange(MultipleEditorModePreferenceKey.self) { newValue in
+                .onPreferenceChange(QuikcEditorCurrentPagePreferenceKey.self) { newValue in
                     Task { @MainActor in
-                        weakSelf?._innerMultipleEditorMode = newValue
+                        weakSelf?._innerCurrentPage = newValue
                     }
                 }
         ))
@@ -197,8 +197,8 @@ private class InnerHeightUIHostingController: UIHostingController<AnyView> {
         didSet { onVerticalSizeClassChange(_innerVerticalSizeClass) }
     }
 
-    private var _innerMultipleEditorMode: AvatarPickerAndAboutEditorConfiguration.Page? = nil {
-        didSet { onMultipleEditorModeChange(_innerMultipleEditorMode) }
+    private var _innerCurrentPage: QuickEditorPage = .avatarPicker {
+        didSet { onPageChange(_innerCurrentPage) }
     }
 }
 
