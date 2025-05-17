@@ -146,6 +146,10 @@ final class DemoQuickEditorViewController: UIViewController {
             .intrinsicHeight()
         case .automatic:
             .automatic()
+        case .automaticPrioritizeScrolling:
+            .automatic(prioritizeScrollOverResize: true)
+        case .intrinsicHeightPrioritizeScrolling:
+            .intrinsicHeight(prioritizeScrollOverResize: true)
         }
     }
 
@@ -577,7 +581,9 @@ enum SheetPresentationStyleRepresentation: String, CaseIterable, Hashable {
     case expandableMedium = "Expandable Medium"
     case expandableMediumPrioritizeScrolling = "Expandable Medium - Prioritize scrolling"
     case intrinsicHeight = "Intrinsic Height"
+    case intrinsicHeightPrioritizeScrolling = "Intrinsic Height - Prioritize scrolling"
     case automatic = "Automatic"
+    case automaticPrioritizeScrolling = "Automatic - Prioritize scrolling"
 }
 
 private extension UIView {
