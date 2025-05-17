@@ -9,8 +9,8 @@ public struct SheetPresentationStyle: Sendable {
             initialFraction: CGFloat = SheetPresentationStyle.expandableMediumInitialFraction,
             prioritizeScrollOverResize: Bool = false
         )
-        case intrinsicHeight
-        case automatic
+        case intrinsicHeight(prioritizeScrollOverResize: Bool = false)
+        case automatic(prioritizeScrollOverResize: Bool = false)
     }
 
     let detentMode: DetentMode
@@ -41,21 +41,25 @@ public struct SheetPresentationStyle: Sendable {
     /// There are 2 size classes where this mode is inactive:
     ///  - Compact height: The sheet is displayed in full height.
     ///  - Regular width: The system ignores the intrinsic height and defaults to a full size sheet by the system.
-    public static func intrinsicHeight() -> SheetPresentationStyle {
-        .init(detentMode: .intrinsicHeight)
+    public static func intrinsicHeight(prioritizeScrollOverResize: Bool = false) -> SheetPresentationStyle {
+        .init(detentMode: .intrinsicHeight(prioritizeScrollOverResize: prioritizeScrollOverResize))
     }
 
     /// If the content height is below a certain threshold then `.intrinsicHeight` is applied.
     /// Otherwise `.expandableMedium()` is applied with the proper `initialFraction` and `prioritizeScrollOverResize` parameters depending on the content.
-    public static func automatic() -> SheetPresentationStyle {
-        .init(detentMode: .automatic)
+    public static func automatic(prioritizeScrollOverResize: Bool = false) -> SheetPresentationStyle {
+        .init(detentMode: .automatic(prioritizeScrollOverResize: prioritizeScrollOverResize))
     }
 
     var prioritizeScrollOverResize: Bool {
         switch detentMode {
         case .expandableMedium(_, let prioritizeScrollOverResize):
             prioritizeScrollOverResize
-        default:
+        case .automatic(let prioritizeScrollOverResize):
+            prioritizeScrollOverResize
+        case .intrinsicHeight(let prioritizeScrollOverResize):
+            prioritizeScrollOverResize
+        case .large:
             false
         }
     }
