@@ -32,7 +32,7 @@ public struct AboutEditorConfiguration: Sendable {
     let fields: AboutInfoField
 
     public init(
-        presentationStyle: SheetPresentationStyle = .expandableMedium(),
+        presentationStyle: SheetPresentationStyle = .automatic(),
         fields: AboutInfoField = AboutInfoField.all
     ) {
         self.presentationStyle = presentationStyle
