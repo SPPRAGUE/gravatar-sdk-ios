@@ -15,7 +15,8 @@ public struct SheetPresentationStyle: Sendable {
 
     let detentMode: DetentMode
 
-    /// Full height sheet.
+    /// A full-height sheet presentation style.
+    /// - Returns: A `SheetPresentationStyle` instance configured to present the sheet at full height.
     public static func large() -> SheetPresentationStyle {
         .init(detentMode: .large)
     }
