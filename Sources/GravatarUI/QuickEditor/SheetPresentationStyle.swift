@@ -21,10 +21,14 @@ public struct SheetPresentationStyle: Sendable {
         .init(detentMode: .large)
     }
 
-    /// Medium height sheet that is expandable to full height. In compact height this is inactive and the sheet is displayed as full height.
-    /// - initialFraction: The fractional height of the sheet in its initial state.
-    /// - prioritizeScrollOverResize: A behavior that prioritizes scrolling the content of the sheet when
-    /// swiping, rather than resizing it. Note that this parameter is effective only for iOS 16.4 +.
+    /// A medium-height sheet presentation style that can expand to full height.
+    ///
+    /// In a compact height size class environment, the medium-height presentation is disabled and the sheet is presented at full height by default.
+    /// - Parameters:
+    ///   - initialFraction: The fractional height (relative to the full height) at which the sheet is initially presented.
+    ///   - prioritizeScrollOverResize: Determines whether scroll gestures within the sheet take precedence over resizing gestures. Available on iOS 16.4 and
+    /// later.
+    /// - Returns: A configured ``SheetPresentationStyle`` instance representing an expandable medium-height sheet.
     public static func expandableMedium(
         initialFraction: CGFloat = SheetPresentationStyle.expandableMediumInitialFraction,
         prioritizeScrollOverResize: Bool = false
