@@ -1,5 +1,5 @@
 import Foundation
-
+/// A value that describes how the Quick Editor sheet should be presented,
 public struct SheetPresentationStyle: Sendable {
     public static let expandableMediumInitialFraction: CGFloat = 0.7
 
