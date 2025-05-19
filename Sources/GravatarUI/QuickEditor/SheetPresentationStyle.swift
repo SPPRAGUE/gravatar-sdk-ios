@@ -50,7 +50,16 @@ public struct SheetPresentationStyle: Sendable {
         .init(detentMode: .intrinsicHeight)
     }
 
-    /// Applies `.intrinsicHeight` when the content height is below a defined threshold. Otherwise, applies `.expandableMedium()`.
+    /// Returns a sheet presentation style that automatically chooses between `.intrinsicHeight` and `.expandableMedium()`,
+    /// depending on the content height.
+    ///
+    /// If the content height is below a predefined threshold, `.intrinsicHeight` is used;
+    /// otherwise, `.expandableMedium()` is applied.
+    ///
+    /// - Parameter prioritizeScrollOverResize: Determines whether scroll gestures within the sheet take precedence over resizing gestures.
+    ///   This parameter is effective only on iOS 16.4 and later.
+    ///
+    /// - Returns: A `SheetPresentationStyle` instance that adapts the sheet height based on content size.
     public static func automatic(prioritizeScrollOverResize: Bool = false) -> SheetPresentationStyle {
         .init(detentMode: .automatic(prioritizeScrollOverResize: prioritizeScrollOverResize))
     }
