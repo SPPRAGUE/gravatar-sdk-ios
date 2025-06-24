@@ -11,7 +11,7 @@ If you're also looking to integrate Gravatar in your Android app, check out our 
 ## Features
 
 #### Core services:
-- [Avatar URL calculator](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/5.-AvatarURLCalculator) based on email, email hash, and several [query options](https://docs.gravatar.com/general/images/).
+- [Avatar URL calculator](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/5.-avatarurlcalculator) based on email, email hash, and several [query options](https://docs.gravatar.com/general/images/).
 - [Avatar downloading](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/2.-downloadingavatar) based on [email](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/2.-downloadingavatar#Download-Avatar-via-email) or [url](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/2.-downloadingavatar#Download-Avatar-via-email).
   - [Built-in image cache](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/2.-downloadingavatar#Providing-a-custom-Image-Cache) (with the ability to inject your own cache).
 - [Avatar uploading](https://automattic.github.io/Gravatar-SDK-iOS/gravatar/documentation/gravatar/3.-uploadingavatar) to a [Gravatar](https://gravatar.com/) account.
