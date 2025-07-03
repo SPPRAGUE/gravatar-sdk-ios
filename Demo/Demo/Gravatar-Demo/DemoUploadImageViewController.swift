@@ -3,8 +3,14 @@ import Gravatar
 import Combine
 
 class DemoUploadImageViewController: BaseFormViewController {
-    let emailFormField = TextFormField(placeholder: "Email", keyboardType: .emailAddress)
-    let tokenFormField = TextFormField(placeholder: "Token", isSecure: true)
+    @StoredValue(keyName: "QEEmailKey", defaultValue: "")
+    var savedEmail: String
+
+    @StoredValue(keyName: "QETokenKey", defaultValue: "")
+    var savedToken: String
+
+    lazy var emailFormField = TextFormField(placeholder: "Email", text: savedEmail, keyboardType: .emailAddress)
+    lazy var tokenFormField = TextFormField(placeholder: "Token", text: savedToken, isSecure: true)
     let avatarImageField = ImageFormField(size: .init(width: 300, height: 300))
     let resultField = LabelField(title: "", subtitle: "")
 
@@ -41,7 +47,7 @@ class DemoUploadImageViewController: BaseFormViewController {
     }
 
     private let activityIndicator = UIActivityIndicatorView(style: .large)
-    private var avatarSelectionBehavior: AvatarSelection = .preserveSelection
+    private var avatarSelectionPolicy: AvatarUploadSelectionPolicy = .preserveSelection
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -89,10 +95,10 @@ class DemoUploadImageViewController: BaseFormViewController {
             do {
                 let avatarModel = try await service.upload(
                     image,
-                    selectionBehavior: avatarSelectionBehavior,
+                    selectionPolicy: avatarSelectionPolicy,
                     accessToken: token
                 )
-                resultField.subtitle = "✅ Avatar id \(avatarModel.id)"
+                resultField.subtitle = "✅ Avatar id \(avatarModel.imageID)"
             } catch {
                 resultField.subtitle = "Error \((error as NSError).code): \(error.localizedDescription)"
             }
@@ -136,11 +142,10 @@ extension DemoUploadImageViewController: UIImagePickerControllerDelegate, UINavi
     @objc private func setAvatarSelectionMethod(with email: String, sender: UIView?) {
         let controller = UIAlertController(title: "Avatar selection behavior:", message: nil, preferredStyle: .actionSheet)
 
-
-        AvatarSelection.allCases(for: .init(email)).forEach { selectionCase in
+        AvatarUploadSelectionPolicy.allCases(for: .email(Email(email))).forEach { selectionCase in
             controller.addAction(UIAlertAction(title: selectionCase.description, style: .default) { [weak self] action in
                 guard let self else { return }
-                avatarSelectionBehavior = selectionCase
+                avatarSelectionPolicy = selectionCase
                 backendSelectionBehaviorButtonField.subtitle = selectionCase.description
                 update(backendSelectionBehaviorButtonField)
             })
@@ -153,12 +158,16 @@ extension DemoUploadImageViewController: UIImagePickerControllerDelegate, UINavi
     }
 }
 
-extension AvatarSelection {
+extension AvatarUploadSelectionPolicy {
     var description: String {
-        switch self {
-            case .selectUploadedImage: return "Select uploaded image"
-            case .preserveSelection: return "Preserve selection"
-            case .selectUploadedImageIfNoneSelected: return "Select uploaded image if none selected"
+        if isSelectUploadedImagePolicy {
+            "Select uploaded image"
+        } else if isPreserveSelectionPolicy {
+            "Preserve selection"
+        } else if isSelectUploadedImageIfNoneSelectedPolicy {
+            "Select uploaded image if none selected"
+        } else {
+            "Unknown option"
         }
     }
 }
