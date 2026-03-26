@@ -110,7 +110,7 @@ struct AltTextEditorView: View {
             .focused($focused)
             .submitLabel(.done)
             .onAppear { focused = true }
-            if altText.count == 0 {
+            if altText.isEmpty {
                 Text(Localized.altTextPlaceholder)
                     .padding(8)
                     // Exactly possitions placeholder over TextEditor text.

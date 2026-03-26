@@ -144,7 +144,7 @@ final class AvatarPickerViewModelTests {
 
         await confirmation(expectedCount: 2) { confirmation in
             model.toastManager.$toasts.sink { toasts in
-                #expect(toasts.count == 0, "No toast should be shown in success case")
+                #expect(toasts.isEmpty, "No toast should be shown in success case")
                 confirmation.confirm()
             }.store(in: &cancellables)
 
