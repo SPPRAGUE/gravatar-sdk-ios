@@ -89,14 +89,6 @@ lint: # Use swiftformat to warn about format issues
 	@make swiftlint
 	@make swiftformat-lint
 
-validate-pod: bundle-install
-	# For some reason this fixes a failure in `lib lint`
-	# https://github.com/Automattic/buildkite-ci/issues/7
-	xcrun simctl list >> /dev/null
-	bundle exec pod lib lint \
-		--include-podspecs="*.podspec" \
-		--verbose --fail-fast
-
 update-example-snapshots:
 	for filePath in ./Sources/GravatarUI/GravatarUI.docc/Resources/ProfileExamples/*; \
 	do rm $$filePath; done

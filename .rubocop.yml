@@ -5,10 +5,6 @@ AllCops:
     - openapi-generator/**/*
   NewCops: enable
 
-Naming/FileName:
-  Exclude:
-    - "*.podspec"
-
 Metrics/BlockLength:
   Exclude: &fastlane
     - fastlane/Fastfile
