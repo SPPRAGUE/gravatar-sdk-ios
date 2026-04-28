@@ -2,7 +2,6 @@
 
 source 'https://rubygems.org'
 
-gem 'cocoapods', '~> 1.14.3'
 gem 'danger-dangermattic', '~> 1.2.2'
 gem 'fastlane', '~> 2.222'
 gem 'fastlane-plugin-firebase_app_distribution', '~> 0.10'

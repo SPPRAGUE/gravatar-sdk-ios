@@ -13,7 +13,6 @@ These are the main components of our toolset:
 - [Ruby](https://www.ruby-lang.org/en/)
 - [A Ruby Version Manager (e.g. rbenv)](https://github.com/rbenv/rbenv)
 - [Bundler (dependency manager for Ruby)](https://bundler.io)
-- [Cocoapods](https://github.com/CocoaPods/CocoaPods)
 - [Homebrew](https://brew.sh)
 
 ## Quick Setup

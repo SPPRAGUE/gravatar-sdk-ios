@@ -64,34 +64,6 @@ steps:
           context: "Build and Test Swift Package"
 
   ###################
-  # Validate Podspec
-  ###################
-  - label: "🔬 Validate Podspecs"
-    key: "validate"
-    command: |
-      .buildkite/commands/validate-pods.sh
-    plugins: [$CI_TOOLKIT]
-    notify:
-      - github_commit_status:
-          context: "Validate Podspecs"
-
-  #######################
-  # Publish the Podspecs (if we're building a tag)
-  #######################
-  - label: "⬆️ Publish Podspecs"
-    key: "publish"
-    command: |
-      .buildkite/commands/publish-pod.sh "Gravatar.podspec"
-      .buildkite/commands/publish-pod.sh "GravatarUI.podspec"
-    plugins: [$CI_TOOLKIT]
-    depends_on:
-      - "test"
-      - "validate"
-      - "swiftlint"
-      - "swiftformat-lint"
-    if: build.tag != null
-
-  ###################
   # Prototype Builds of Demo Projects
   ###################
   - group: ":firebase: Prototype Build"

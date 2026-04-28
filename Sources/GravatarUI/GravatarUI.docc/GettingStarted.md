@@ -27,19 +27,6 @@ Add the `GravatarUI` product as a dependency for your target:
 .product(name: "GravatarUI", package: "gravatar-sdk-ios")
 ```
 
-### CocoaPods
-
-Add `pod 'GravatarUI'` to your target in your `PODFILE`. 
-
-```ruby
-source 'https://github.com/CocoaPods/Specs.git'
-use_frameworks!
-
-target 'MyApp' do
-    pod 'GravatarUI'
-end
-```
-
 ## Running the demo app.
 
 The demo application included in this SDK is designed to showcase the core functionalities and provide a starting point for integrating the SDK into your project. It offers a practical, hands-on way to explore key features and test configurations in a controlled environment.
