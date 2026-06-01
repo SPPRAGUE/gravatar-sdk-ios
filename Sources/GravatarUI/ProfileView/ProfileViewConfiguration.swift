@@ -32,8 +32,8 @@ public struct ProfileViewConfiguration: UIContentConfiguration {
     /// Creates a padding space around the content of the profile view.
     /// To remove all pading, set this to zero.
     public var padding: UIEdgeInsets = BaseProfileView.defaultPadding
-    /// Wether the state of the view is `loading`.
-    /// Set this property to `true` when the profile information is being retreived and not yet set to the profile view.
+    /// Whether the state of the view is `loading`.
+    /// Set this property to `true` when the profile information is being retrieved and not yet set to the profile view.
     public var isLoading: Bool = false
     /// A configuration to control the loading and behavior of the profile avatar.
     public var avatarConfiguration = AvatarConfiguration()
