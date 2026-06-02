@@ -30,7 +30,7 @@ public struct ProfileViewConfiguration: UIContentConfiguration {
     /// A customization block on the PaletteType. Set this if you need to partially alter the current palette.
     public var paletteCustomizer: PaletteCustomizer?
     /// Creates a padding space around the content of the profile view.
-    /// To remove all pading, set this to zero.
+    /// To remove all padding, set this to zero.
     public var padding: UIEdgeInsets = BaseProfileView.defaultPadding
     /// Whether the state of the view is `loading`.
     /// Set this property to `true` when the profile information is being retrieved and not yet set to the profile view.
