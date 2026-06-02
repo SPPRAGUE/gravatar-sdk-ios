@@ -55,7 +55,7 @@ extension UIImage {
         return (shortEdge * scale) / (longEdge * scale)
     }
 
-    /// Returns the lenght of the shorter edge of an image
+    /// Returns the length of the shorter edge of an image
     var shortEdge: CGFloat {
         min(self.size.width, self.size.height)
     }

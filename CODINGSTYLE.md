@@ -14,7 +14,7 @@ You can run `SwiftFormat` locally with `make lint` to get warnings, or `make swi
 
 - Always UPPERCASED when it's part of a Type name.
 - Use lowercase everytime it's a prefix, and is not a type name.
-- Use lowercase if it's writen alone, and it's not a type name.
+- Use lowercase if it's written alone, and it's not a type name.
 
 For example:
 

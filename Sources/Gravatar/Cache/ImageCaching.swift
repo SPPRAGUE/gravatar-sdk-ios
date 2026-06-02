@@ -45,10 +45,10 @@ public struct ImageCache: ImageCaching {
 
 private class NSCacheForImage: NSCache<NSString, CacheEntryObject>, @unchecked Sendable {}
 
-/// ImageCache can save an in-progress task of retreiving an image from remote.
+/// ImageCache can save an in-progress task of retrieving an image from remote.
 /// This enum represent both possible states for an image in the cache system.
 public enum CacheEntry: Sendable {
-    /// A task of retreiving an image is in progress.
+    /// A task of retrieving an image is in progress.
     case inProgress(Task<UIImage, Error>)
     /// An image instance is readily available.
     case ready(UIImage)

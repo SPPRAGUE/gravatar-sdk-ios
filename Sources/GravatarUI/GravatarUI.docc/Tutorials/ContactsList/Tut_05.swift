@@ -8,7 +8,7 @@ class TableViewController: UITableViewController {
         let profile = try await service.fetch(with: .email(email))
 
         // Create a Summary ProfileViewConfiguration to display the profile obtained,
-        // and store it to be retreived later on.
+        // and store it to be retrieved later on.
         models[email] = .summary(model: profile)
 
         // Reload the cell for the given email.
