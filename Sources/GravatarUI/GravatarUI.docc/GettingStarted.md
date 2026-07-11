@@ -38,7 +38,7 @@ While some features are ready to be tested out of the box, others require additi
 2. To have access to the Quick Editor through OAuth, set the following `Callback URI`:
   - `https://gravatar.com/iosdemo/oauth/callback` 
 3. Copy the `API key`, `Client ID`, and `Callback URI` to be pasted on the demo app.
-4. After building the Demo app for the first time, a file `Secrets.swift` is going to be automatically created. Fill up the constants of this file with the secrets from the previous step.
+4. Internal contributors: run `make setup-secrets` to decrypt the demo credentials (stored outside the repo under `~/.configure`). External contributors: build the demo once — it seeds a gitignored `Demo/Demo/Secrets.external-contributors.swift` from the template — then fill in the values from the previous step there.
 5. Now you have access to Full Profile and Quick Editor in the Demo app 🎉
 
 

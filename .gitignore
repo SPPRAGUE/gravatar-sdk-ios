@@ -41,4 +41,5 @@ vendor/swiftgen
 
 # Other
 openapi/GravatarOpenAPIClient/Sources/
+Demo/Demo/Secrets.external-contributors.swift
 Demo/Demo/Secrets.swift
