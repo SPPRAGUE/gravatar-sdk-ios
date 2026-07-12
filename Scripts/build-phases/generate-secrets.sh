@@ -3,15 +3,16 @@
 set -euo pipefail
 
 # Materialize the demo app's Secrets.swift into DerivedData so the decrypted
-# credentials never land in the repo checkout (AINFRA-2640). Source, in order:
+# credentials never land in the repo checkout (AINFRA-2640). The compiled file
+# comes from one of two sources, in order:
 #
 #   1. ~/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift — internal
 #      contributors, decrypted by `configure_apply` outside the repo.
-#   2. Demo/Demo/Secrets.external-contributors.swift — seeded from the template on
-#      first build and gitignored, so external contributors can paste their own
-#      credentials into a clearly named file that can't be committed.
-#   3. Demo/Demo/Secrets.template.swift — committed template with nil/empty
-#      defaults, so the demo always builds without any secrets.
+#   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
+#      contributors can paste their own credentials into a clearly named file
+#      that can't be committed. On first build it is seeded from the committed
+#      Demo/Demo/Secrets.template.swift (nil/empty defaults), so the demo always
+#      builds without any secrets.
 
 SECRETS_FILE="${HOME}/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift"
 TEMPLATE="${SRCROOT}/Demo/Secrets.template.swift"
