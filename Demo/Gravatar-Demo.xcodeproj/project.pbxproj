@@ -72,6 +72,7 @@
 		1E3C4ADF2DD71111002867BC /* QEInitialPagePickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEInitialPagePickerRow.swift; sourceTree = "<group>"; };
 		1E3FA23D2C74B7B5002901F2 /* Secrets.template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.template.swift; sourceTree = "<group>"; };
 		1E3FA23F2C74B8CC002901F2 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = DERIVED_FILE_DIR; };
+		1EDE0EDA2E00AAA10000A001 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		1E3FA2442C75E403002901F2 /* DemoProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoProfileEditorView.swift; sourceTree = "<group>"; };
 		1E741C432DBB9BDC00216752 /* QEScopesPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEScopesPickerRow.swift; sourceTree = "<group>"; };
 		1E741C452DBB9BF800216752 /* QEVerticalStylePickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEVerticalStylePickerRow.swift; sourceTree = "<group>"; };
@@ -287,12 +288,22 @@
 			children = (
 				3FD4781E2C50D6FD0071B8B9 /* Base.xcconfig */,
 				3FD478232C51D9280071B8B9 /* Enterprise.xcconfig */,
-				1E3FA23F2C74B8CC002901F2 /* Secrets.swift */,
+				1EDE0EDA2E00AAA10000A002 /* Generated */,
 				495775E02B5B34970082812A /* Gravatar-Demo */,
 				498060C82C6FF20B00C6848C /* Localizations */,
 				1E3FA23D2C74B7B5002901F2 /* Secrets.template.swift */,
 			);
 			path = Demo;
+			sourceTree = "<group>";
+		};
+		1EDE0EDA2E00AAA10000A002 /* Generated */ = {
+			isa = PBXGroup;
+			children = (
+				1EDE0EDA2E00AAA10000A001 /* README.md */,
+				1E3FA23F2C74B8CC002901F2 /* Secrets.swift */,
+			);
+			name = "Generated";
+			path = generated;
 			sourceTree = "<group>";
 		};
 		91956A502B67939F00BF3CF0 /* Common */ = {
