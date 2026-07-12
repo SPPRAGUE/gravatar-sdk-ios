@@ -3,16 +3,16 @@
 set -euo pipefail
 
 # Materialize the demo app's Secrets.swift into DerivedData so the decrypted
-# credentials never land in the repo checkout (AINFRA-2640). The compiled file
-# comes from one of two sources, in order:
+# credentials never land in the repo checkout.
 #
-#   1. ~/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift — internal
+# The compiled file comes from one of two sources, in order:
+#
+#   1. ${OUT_OF_REPO_SECRETS_ROOT}/Secrets.swift — internal
 #      contributors, decrypted by `configure_apply` outside the repo.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
 #      contributors can paste their own credentials into a clearly named file
 #      that can't be committed. On first build it is seeded from the committed
-#      Demo/Demo/Secrets.template.swift (nil/empty defaults), so the demo always
-#      builds without any secrets.
+#      Demo/Demo/Secrets.template.swift.
 
 SECRETS_FILE="${HOME}/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift"
 TEMPLATE="${SRCROOT}/Demo/Secrets.template.swift"
@@ -29,10 +29,9 @@ fi
 
 # The decrypted secret is absent — warn every time, even when a fallback exists,
 # so internal contributors notice a missing/undecrypted secret.
-echo "warning: decrypted demo secrets not found under ~/.configure. Internal contributors: run 'make setup-secrets'."
+echo "warning: decrypted secrets not found under ~/.configure. Internal contributors: run 'make setup-secrets'."
 
-# Seed the external-contributors file from the template on first build. It is
-# gitignored, so edits persist across builds and can't be committed.
+# Seed the external-contributors file from the template on first build.
 if [ ! -f "$EXTERNAL" ]; then
     echo "Seeding ${EXTERNAL} from the template — external contributors: add your own credentials there."
     cp "$TEMPLATE" "$EXTERNAL"

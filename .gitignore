@@ -43,6 +43,5 @@ vendor/swiftgen
 openapi/GravatarOpenAPIClient/Sources/
 Demo/Demo/Secrets.external-contributors.swift
 # Precaution: drop this once pre-2026-07 checkouts are out of circulation.
-# Nothing writes this path anymore — before AINFRA-2640 `.configure` decrypted
-# plaintext straight here, so an old checkout may still hold a stale copy.
+# See AINFRA-2640.
 Demo/Demo/Secrets.swift
