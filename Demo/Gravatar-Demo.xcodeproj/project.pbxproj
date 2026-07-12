@@ -302,8 +302,7 @@
 				1EDE0EDA2E00AAA10000A001 /* README.md */,
 				1E3FA23F2C74B8CC002901F2 /* Secrets.swift */,
 			);
-			name = "Generated";
-			path = generated;
+			path = Generated;
 			sourceTree = "<group>";
 		};
 		91956A502B67939F00BF3CF0 /* Common */ = {
