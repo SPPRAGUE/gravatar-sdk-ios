@@ -5,7 +5,7 @@
   "files_to_copy": [
     {
       "file": "iOS/GravatarSDK/Secrets.swift",
-      "destination": "Demo/Demo/Secrets.swift",
+      "destination": "~/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift",
       "encrypt": true
     }
   ],

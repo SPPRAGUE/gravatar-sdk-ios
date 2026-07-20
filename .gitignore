@@ -41,4 +41,7 @@ vendor/swiftgen
 
 # Other
 openapi/GravatarOpenAPIClient/Sources/
+Demo/Demo/Secrets.external-contributors.swift
+# Precaution: drop this once pre-2026-07 checkouts are out of circulation.
+# See AINFRA-2640.
 Demo/Demo/Secrets.swift
