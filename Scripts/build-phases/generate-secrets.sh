@@ -10,9 +10,8 @@ set -euo pipefail
 #   1. ${OUT_OF_REPO_SECRETS_ROOT}/Secrets.swift — internal
 #      contributors, decrypted by `configure_apply` outside the repo.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
-#      contributors can paste their own credentials into a clearly named file
-#      that can't be committed. On first build it is seeded from the committed
-#      Demo/Demo/Secrets.template.swift.
+#      contributors can copy Demo/Demo/Secrets.template.swift there and add
+#      their credentials there with little-to-no-risk of them leaking.
 
 SECRETS_FILE="${HOME}/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift"
 TEMPLATE="${SRCROOT}/Demo/Secrets.template.swift"
@@ -27,14 +26,11 @@ if [ -f "$SECRETS_FILE" ]; then
     exit 0
 fi
 
-# The decrypted secret is absent — warn every time, even when a fallback exists,
-# so internal contributors notice a missing/undecrypted secret.
-echo "warning: decrypted secrets not found under ~/.configure. Internal contributors: run 'make setup-secrets'."
-
-# Seed the external-contributors file from the template on first build.
-if [ ! -f "$EXTERNAL" ]; then
-    echo "Seeding ${EXTERNAL} from the template — external contributors: add your own credentials there."
-    cp "$TEMPLATE" "$EXTERNAL"
+if [ -f "$EXTERNAL" ]; then
+    echo "Applying demo secrets from ${EXTERNAL}"
+    cp "$EXTERNAL" "$DESTINATION"
+    exit 0
 fi
 
-cp "$EXTERNAL" "$DESTINATION"
+echo "error: No secrets found! Internal contributors: run 'make setup-secrets'. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
+exit 1

@@ -2,9 +2,9 @@
 //
 // Only edit this file if `Secrets` needs to change in the app.
 //
-// External contributors: The first build copies this file to the .gitignored `Demo/Demo/Secrets.external-contributors.swift`.
-// Edit that file with your own credentials from https://gravatar.com/developers/applications.
-// Otherwise the app will build with the empty defaults below.
+// External contributors: Copy this file to the .gitignored `Demo/Demo/Secrets.external-contributors.swift`,
+// then fill it in with your own credentials from https://gravatar.com/developers/applications.
+// The build fails until that file exists.
 //
 // Internal contributors: Run `make setup-secrets` before building to decrypt the first-party secrets instead.
 
