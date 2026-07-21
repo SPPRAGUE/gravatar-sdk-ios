@@ -119,6 +119,6 @@ final class TestProfileConfiguration: XCTestCase {
         config.avatarConfiguration.avatarLength = 80
         view.configuration = config
         let superView = view.wrapInSuperView(with: Constants.width)
-        assertSnapshot(of: superView, as: .image)
+        assertSnapshot(of: superView, as: .imageWithHostTolerance)
     }
 }

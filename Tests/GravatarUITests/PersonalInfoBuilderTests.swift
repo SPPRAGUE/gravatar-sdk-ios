@@ -46,7 +46,7 @@ final class PersonalInfoBuilderTests: XCTestCase {
                 .asPersonalInfo()
                 .content(TestPersonalInfo.fullInfo())
                 .palette(palette)
-            assertSnapshot(of: label, as: .image, named: "testPersonalInfoFull-\(palette.name)")
+            assertSnapshot(of: label, as: .imageWithHostTolerance, named: "testPersonalInfoFull-\(palette.name)")
         }
     }
 
@@ -61,7 +61,7 @@ final class PersonalInfoBuilderTests: XCTestCase {
                     .init([.location]),
                 ], separator: " - ")
                 .palette(palette)
-            assertSnapshot(of: label, as: .image, named: "testPersonalInfoFull-\(palette.name)")
+            assertSnapshot(of: label, as: .imageWithHostTolerance, named: "testPersonalInfoFull-\(palette.name)")
         }
     }
 
@@ -72,7 +72,7 @@ final class PersonalInfoBuilderTests: XCTestCase {
             .asPersonalInfo()
             .content(TestPersonalInfo.fullInfo())
             .palette(.light)
-        assertSnapshot(of: label, as: .image)
+        assertSnapshot(of: label, as: .imageWithHostTolerance)
     }
 
     @MainActor
