@@ -5,8 +5,8 @@ extension Snapshotting where Value == UIView, Format == UIImage {
     /// `.image`, but tolerant of the text metric differences between the macOS build a reference was recorded on and
     /// the one the CI VM runs.
     ///
-    /// The personal info line — `job • pronouns • location` — lays out with slightly tighter spacing around the
-    /// separators on some macOS builds, shifting the rest of the line by a pixel or two. Every view that renders it
+    /// For example, the personal info line — `job • pronouns • location` — lays out with slightly different spacing around the
+    /// separators between macOS 26 builds, shifting the rest of the line by a pixel or two. Every view that renders it
     /// differs on CI; views without it match exactly. The CI VM images move through macOS point releases on their own
     /// schedule, so there is no host to pin to keep an exact match, and references cannot be recorded on CI either —
     /// the simulator sandbox drops those writes.
