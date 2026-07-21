@@ -70,8 +70,9 @@
 		1E15CA7B2D3FB8F700B5FCB4 /* SegmentedControlField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentedControlField.swift; sourceTree = "<group>"; };
 		1E1C5F332D42734800209999 /* LabelField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelField.swift; sourceTree = "<group>"; };
 		1E3C4ADF2DD71111002867BC /* QEInitialPagePickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEInitialPagePickerRow.swift; sourceTree = "<group>"; };
-		1E3FA23D2C74B7B5002901F2 /* Secrets.tpl */ = {isa = PBXFileReference; lastKnownFileType = text; path = Secrets.tpl; sourceTree = "<group>"; };
-		1E3FA23F2C74B8CC002901F2 /* Secrets.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
+		1E3FA23D2C74B7B5002901F2 /* Secrets.template.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.template.swift; sourceTree = "<group>"; };
+		1E3FA23F2C74B8CC002901F2 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = DERIVED_FILE_DIR; };
+		1EDE0EDA2E00AAA10000A001 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		1E3FA2442C75E403002901F2 /* DemoProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoProfileEditorView.swift; sourceTree = "<group>"; };
 		1E741C432DBB9BDC00216752 /* QEScopesPickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEScopesPickerRow.swift; sourceTree = "<group>"; };
 		1E741C452DBB9BF800216752 /* QEVerticalStylePickerRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QEVerticalStylePickerRow.swift; sourceTree = "<group>"; };
@@ -287,12 +288,21 @@
 			children = (
 				3FD4781E2C50D6FD0071B8B9 /* Base.xcconfig */,
 				3FD478232C51D9280071B8B9 /* Enterprise.xcconfig */,
-				1E3FA23F2C74B8CC002901F2 /* Secrets.swift */,
+				1EDE0EDA2E00AAA10000A002 /* Generated */,
 				495775E02B5B34970082812A /* Gravatar-Demo */,
 				498060C82C6FF20B00C6848C /* Localizations */,
-				1E3FA23D2C74B7B5002901F2 /* Secrets.tpl */,
+				1E3FA23D2C74B7B5002901F2 /* Secrets.template.swift */,
 			);
 			path = Demo;
+			sourceTree = "<group>";
+		};
+		1EDE0EDA2E00AAA10000A002 /* Generated */ = {
+			isa = PBXGroup;
+			children = (
+				1EDE0EDA2E00AAA10000A001 /* README.md */,
+				1E3FA23F2C74B8CC002901F2 /* Secrets.swift */,
+			);
+			path = Generated;
 			sourceTree = "<group>";
 		};
 		91956A502B67939F00BF3CF0 /* Common */ = {
@@ -403,19 +413,19 @@
 			files = (
 			);
 			inputFileListPaths = (
+				"$(SRCROOT)/../Scripts/build-phases/generate-secrets.xcfilelist",
 			);
 			inputPaths = (
-				"$(SRCROOT)/Demo/Secrets.tpl",
 			);
 			name = "Generate Secrets.swift";
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(SRCROOT)/Demo/Secrets.swift",
+				"$(DERIVED_FILE_DIR)/Secrets.swift",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "TEMPLATE_PATH=\"${SRCROOT}/Demo/Secrets.tpl\"\nSECRETS_PATH=\"${SRCROOT}/Demo/Secrets.swift\"\n\nif [ ! -f \"${SECRETS_PATH}\" ]; then\n    cp \"${TEMPLATE_PATH}\" \"${SECRETS_PATH}\"\nfi\n";
+			shellScript = "\"${SRCROOT}/../Scripts/build-phases/generate-secrets.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
