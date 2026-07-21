@@ -7,30 +7,34 @@ set -euo pipefail
 #
 # The compiled file comes from one of two sources, in order:
 #
-#   1. ${OUT_OF_REPO_SECRETS_ROOT}/Secrets.swift — internal
-#      contributors, decrypted by `configure_apply` outside the repo.
+#   1. The a8c-secrets decrypted tree, for internal contributors who have run
+#      `a8c-secrets decrypt`. `a8c-secrets which` fails when the file is absent.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
 #      contributors can copy Demo/Demo/Secrets.template.swift there and add
 #      their credentials there with little-to-no-risk of them leaking.
 
-SECRETS_FILE="${HOME}/.configure/Gravatar-SDK-iOS/secrets/Secrets.swift"
 TEMPLATE="${SRCROOT}/Demo/Secrets.template.swift"
 EXTERNAL="${SRCROOT}/Demo/Secrets.external-contributors.swift"
 DESTINATION="${SCRIPT_OUTPUT_FILE_0}"
 
 mkdir -p "$(dirname "$DESTINATION")"
 
-if [ -f "$SECRETS_FILE" ]; then
-    echo "Applying demo secrets from ${SECRETS_FILE}"
-    cp "$SECRETS_FILE" "$DESTINATION"
+# Only rewrite the output when the content changed: a git checkout can bump the
+# tracked .age mtime (re-running this phase) without the secret actually
+# changing, and an unconditional copy would then recompile Secrets.swift.
+apply() {
+    echo "Applying demo secrets from ${1}"
+    cmp -s "$1" "$DESTINATION" || cp "$1" "$DESTINATION"
     exit 0
+}
+
+if command -v a8c-secrets >/dev/null 2>&1 && SECRETS_FILE=$(a8c-secrets which Secrets.swift 2>/dev/null); then
+    apply "$SECRETS_FILE"
 fi
 
 if [ -f "$EXTERNAL" ]; then
-    echo "Applying demo secrets from ${EXTERNAL}"
-    cp "$EXTERNAL" "$DESTINATION"
-    exit 0
+    apply "$EXTERNAL"
 fi
 
-echo "error: No secrets found! Internal contributors: run 'make setup-secrets'. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
+echo "error: No secrets found! Internal contributors: run 'a8c-secrets decrypt'. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
 exit 1
