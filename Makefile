@@ -57,7 +57,7 @@ bundle-install:
 fetch-code-signing: bundle-install
 	bundle exec fastlane configure_code_signing
 
-setup-secrets: # Decrypt the demo app secrets with a8c-secrets
+setup-secrets:
 	a8c-secrets decrypt
 
 swiftformat: check-docker # Automatically find and fixes lint issues
