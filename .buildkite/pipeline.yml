@@ -57,8 +57,12 @@ steps:
     key: "test"
     command: |
       install_swiftpm_dependencies --use-spm
-      validate_swift_package
+      validate_swift_package || EXIT_CODE=$?
+      zip -qr xcresult.zip .build/derived-data/Logs/Test || true
+      exit ${EXIT_CODE:-0}
     plugins: [$CI_TOOLKIT]
+    artifact_paths:
+      - "xcresult.zip"
     notify:
       - github_commit_status:
           context: "Build and Test Swift Package"
