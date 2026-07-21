@@ -59,8 +59,6 @@ steps:
       install_swiftpm_dependencies --use-spm
       validate_swift_package
     plugins: [$CI_TOOLKIT]
-    artifact_paths:
-      - "Tests/GravatarUITests/__Snapshots__/**/*.png"
     notify:
       - github_commit_status:
           context: "Build and Test Swift Package"
