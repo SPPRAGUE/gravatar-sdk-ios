@@ -8,7 +8,7 @@ final class PersonalInfoBuilderTests: XCTestCase {
     let palettesToTest: [PaletteType] = [.light, .dark]
 
     override func invokeTest() {
-        withSnapshotTesting(record: .failed) {
+        withSnapshotTesting(record: .never) {
             super.invokeTest()
         }
     }

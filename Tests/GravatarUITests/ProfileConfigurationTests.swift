@@ -8,7 +8,7 @@ final class TestProfileConfiguration: XCTestCase {
     }
 
     override func invokeTest() {
-        withSnapshotTesting(record: .failed) {
+        withSnapshotTesting(record: .never) {
             super.invokeTest()
         }
     }
