@@ -8,7 +8,7 @@ set -euo pipefail
 # The compiled file comes from one of two sources, in order:
 #
 #   1. The a8c-secrets decrypted tree, for internal contributors who have run
-#      `a8c-secrets decrypt`. `a8c-secrets which` fails when the file is absent.
+#      `a8c-secrets decrypt`. `a8c-secrets which <file>` fails when the file is absent.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
 #      contributors can copy Demo/Demo/Secrets.template.swift there and add
 #      their credentials there with little-to-no-risk of them leaking.
