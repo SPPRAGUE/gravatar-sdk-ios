@@ -8,8 +8,8 @@ set -euo pipefail
 # The compiled file comes from one of two sources, in order:
 #
 #   1. The a8c-secrets decrypted tree, for internal contributors. The phase runs
-#      `a8c-secrets decrypt` itself so that a rotated .age cannot compile as the
-#      secret it replaced. `a8c-secrets which <file>` fails when the file is absent.
+#      `a8c-secrets decrypt` itself so that secrets are always up to date, and
+#      fails the build when it can't.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
 #      contributors can copy Demo/Demo/Secrets.template.swift there and add
 #      their credentials there with little-to-no-risk of them leaking.
@@ -20,28 +20,28 @@ DESTINATION="${SCRIPT_OUTPUT_FILE_0}"
 
 mkdir -p "$(dirname "$DESTINATION")"
 
-# Copy unconditionally: a git checkout can bump the tracked .age mtime without
-# the secret changing, re-running this phase and recompiling Secrets.swift for
-# nothing. Accepted over a `cmp` guard, which would skip the write and leave the
-# output older than its input, keeping the phase permanently out of date.
 apply() {
-    echo "Applying demo secrets from ${1}"
+    echo "Applying secrets from ${1}"
     cp "$1" "$DESTINATION"
     exit 0
 }
 
 if command -v a8c-secrets >/dev/null 2>&1; then
     a8c-secrets decrypt --non-interactive >/dev/null \
-        || echo "warning: 'a8c-secrets decrypt' failed; building with the secrets left by its last successful run"
+        || { echo "error: 'a8c-secrets decrypt --non-interactive' failed. Run it manually to see why."; exit 1; }
 
-    if SECRETS_FILE=$(a8c-secrets which Secrets.swift 2>/dev/null); then
-        apply "$SECRETS_FILE"
-    fi
+    # Keep the substitution in an assignment: inside `apply "$(...)"` its exit
+    # status would be discarded and a decrypt that produced nothing would fall
+    # through to the external-contributor branch.
+    SECRETS_FILE=$(a8c-secrets which Secrets.swift) \
+        || { echo "error: 'a8c-secrets decrypt' succeeded but left no Secrets.swift."; exit 1; }
+
+    apply "$SECRETS_FILE"
 fi
 
 if [ -f "$EXTERNAL" ]; then
     apply "$EXTERNAL"
 fi
 
-echo "error: No secrets found! Internal contributors: run 'a8c-secrets decrypt'. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
+echo "error: No secrets found! Internal contributors: Install a8c-secrets and follow its set up instructions; see https://github.com/Automattic/a8c-secrets. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
 exit 1
