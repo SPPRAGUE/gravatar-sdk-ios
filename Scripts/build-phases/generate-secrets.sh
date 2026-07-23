@@ -28,13 +28,14 @@ apply() {
 
 if command -v a8c-secrets >/dev/null 2>&1; then
     a8c-secrets decrypt --non-interactive >/dev/null \
-        || { echo "error: 'a8c-secrets decrypt --non-interactive' failed. Run it manually to see why."; exit 1; }
+        || { echo "error: 'a8c-secrets decrypt --non-interactive' failed."; exit 1; }
 
     # Keep the substitution in an assignment: inside `apply "$(...)"` its exit
     # status would be discarded and a decrypt that produced nothing would fall
     # through to the external-contributor branch.
-    SECRETS_FILE=$(a8c-secrets which Secrets.swift) \
-        || { echo "error: 'a8c-secrets decrypt' succeeded but left no Secrets.swift."; exit 1; }
+    SECRETS_FILE_NAME="Secrets.swift"
+    SECRETS_FILE=$(a8c-secrets which "$SECRETS_FILE_NAME") \
+        || { echo "error: 'a8c-secrets which $SECRETS_FILE_NAME' failed."; exit 1; }
 
     apply "$SECRETS_FILE"
 fi
@@ -43,5 +44,5 @@ if [ -f "$EXTERNAL" ]; then
     apply "$EXTERNAL"
 fi
 
-echo "error: No secrets found! Internal contributors: Install a8c-secrets and follow its set up instructions; see https://github.com/Automattic/a8c-secrets. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}', fill in your own credentials, and build again."
+echo "error: No secrets found! Internal contributors: Install a8c-secrets and follow its set up instructions; see https://github.com/Automattic/a8c-secrets. External contributors: copy '${TEMPLATE}' to '${EXTERNAL}' and fill in your own credentials."
 exit 1
