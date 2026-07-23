@@ -8,7 +8,7 @@ set -euo pipefail
 # The compiled file comes from one of two sources, in order:
 #
 #   1. The a8c-secrets decrypted tree, for internal contributors. The phase runs
-#      `a8c-secrets decrypt` itself so that secrets are always up to date, and
+#      the decrypt command itself so that secrets are always up to date, and
 #      fails the build when it can't.
 #   2. Demo/Demo/Secrets.external-contributors.swift — gitignored, so external
 #      contributors can copy Demo/Demo/Secrets.template.swift there and add
