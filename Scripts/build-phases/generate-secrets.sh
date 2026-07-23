@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+# Xcode build phases have access to a different PATH than the host.
+# So, we need to explicitly add a8c-secrets' default install location to the PATH.
+export PATH="$HOME/.local/bin:$PATH"
+
 # Materialize the demo app's Secrets.swift into DerivedData so the decrypted
 # credentials never land in the repo checkout.
 #
